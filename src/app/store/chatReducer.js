@@ -27,11 +27,25 @@ export function chatReducer(state, action) {
     }
 
     case "SEND_MESSAGE": {
-      const chats = state.chats.map((c) =>
-        c.id === state.activeChatId
-          ? { ...c, messages: [...c.messages, action.payload] }
-          : c
-      );
+      const chats = state.chats.map((c) => {
+        if (c.id !== state.activeChatId) return c;
+        const MAX_MESSAGES = 10;
+
+        // add new message
+        const updatedMessages = [...c.messages, action.payload];
+
+        // keep only last 30 messages
+        const limitedMessages =
+          updatedMessages.length > MAX_MESSAGES
+            ? updatedMessages.slice(-MAX_MESSAGES)
+            : updatedMessages;
+
+        return {
+          ...c,
+          messages: limitedMessages,
+        };
+      });
+
       saveLocal("chats", chats);
       return { ...state, chats };
     }

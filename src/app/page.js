@@ -5,6 +5,7 @@ import { uid, loadLocal, loadSession } from "../app//utils/storage";
 import Login from "../app/components/Login";
 import Sidebar from "../app/components/Sidebar";
 import ChatWindow from "../app/components/ChatWindow";
+import { Menu } from "lucide-react";
 
 export default function Page() {
   const [state, dispatch] = useReducer(chatReducer, {
@@ -16,6 +17,9 @@ export default function Page() {
 
   const [name, setName] = useState("");
   const [text, setText] = useState("");
+
+  // for menu icon
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
 
   useEffect(() => {
     const sync = (e) => {
@@ -104,25 +108,34 @@ export default function Page() {
     return <Login name={name} setName={setName} onLogin={login} />;
 
   return (
-    <main className="h-screen flex bg-gray-900 text-white">
-      <Sidebar
-        currentUser={state.currentUser}
-        chats={state.chats}
-        openPrivateChat={openPrivateChat}
-        createGroup={createGroup}
-        setActiveChat={(id) =>
-          dispatch({ type: "SET_ACTIVE_CHAT", payload: id })
-        }
-        onLogout={() => dispatch({ type: "LOGOUT" })}
-      />
+    <main className="h-screen flex bg-gray-900 text-white relative">
+      {/* Sidebar */}
+      {isMenuOpen && (
+        <div className="w-72 shrink-0">
+          <Sidebar
+            currentUser={state.currentUser}
+            chats={state.chats}
+            openPrivateChat={openPrivateChat}
+            createGroup={createGroup}
+            setActiveChat={(id) =>
+              dispatch({ type: "SET_ACTIVE_CHAT", payload: id })
+            }
+            onLogout={() => dispatch({ type: "LOGOUT" })}
+          />
+        </div>
+      )}
 
-      <ChatWindow
-        chat={activeChat}
-        currentUser={state.currentUser}
-        text={text}
-        setText={setText}
-        sendMessage={sendMessage}
-      />
+      {/* Chat Window */}
+      <div className="flex-1">
+        <ChatWindow
+          chat={activeChat}
+          currentUser={state.currentUser}
+          text={text}
+          setText={setText}
+          sendMessage={sendMessage}
+          onMenuClick={() => setIsMenuOpen(true)}
+        />
+      </div>
     </main>
   );
 }
