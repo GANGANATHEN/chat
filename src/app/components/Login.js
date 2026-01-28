@@ -1,6 +1,6 @@
 export default function Login({ name, setName, onLogin }) {
   return (
-    <main className="h-screen flex items-center justify-center bg-gray-900">
+    <main className="h-screen w-full flex items-center justify-center bg-gray-900">
       <div className="bg-gray-800 p-6 rounded w-80 space-y-3">
         <h2 className="text-xl font-bold text-white">Login</h2>
         <input

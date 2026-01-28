@@ -2,11 +2,20 @@ import { saveLocal, loadLocal } from "../utils/storage";
 
 export function chatReducer(state, action) {
   switch (action.type) {
+    
+    case "INIT_FROM_STORAGE":
+      return {
+        ...state,
+        users: action.payload.users,
+        chats: action.payload.chats,
+        currentUser: action.payload.currentUser,
+      };
+
     case "LOGIN": {
       sessionStorage.setItem("currentUser", JSON.stringify(action.payload));
       return { ...state, currentUser: action.payload };
     }
-
+    
     case "LOGOUT":
       sessionStorage.removeItem("currentUser");
       return { ...state, currentUser: null, activeChatId: null };
@@ -29,7 +38,7 @@ export function chatReducer(state, action) {
     case "SEND_MESSAGE": {
       const chats = state.chats.map((c) => {
         if (c.id !== state.activeChatId) return c;
-        const MAX_MESSAGES = 10;
+        const MAX_MESSAGES = 30;
 
         // add new message
         const updatedMessages = [...c.messages, action.payload];

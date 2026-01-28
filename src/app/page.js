@@ -5,21 +5,40 @@ import { uid, loadLocal, loadSession } from "../app//utils/storage";
 import Login from "../app/components/Login";
 import Sidebar from "../app/components/Sidebar";
 import ChatWindow from "../app/components/ChatWindow";
-import { Menu } from "lucide-react";
 
 export default function Page() {
-  const [state, dispatch] = useReducer(chatReducer, {
-    users: loadLocal("users", []),
-    chats: loadLocal("chats", []),
-    currentUser: loadSession("currentUser"),
+  const initialState = {
+    users: [],
+    chats: [],
+    currentUser: null,
     activeChatId: null,
-  });
+  };
+
+  const [state, dispatch] = useReducer(chatReducer, initialState);
+  const [isMobile, setIsMobile] = useState(false);
 
   const [name, setName] = useState("");
   const [text, setText] = useState("");
 
-  // for menu icon
-  const [isMenuOpen, setIsMenuOpen] = useState(true);
+  // Initialize state from localStorage and sessionStorage
+  useEffect(() => {
+    const users = loadLocal("users", []);
+    const chats = loadLocal("chats", []);
+    const currentUser = loadSession("currentUser");
+
+    dispatch({
+      type: "INIT_FROM_STORAGE",
+      payload: { users, chats, currentUser },
+    });
+  }, []);
+
+  // Sync chats across tabs
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth > 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   useEffect(() => {
     const sync = (e) => {
@@ -46,17 +65,21 @@ export default function Page() {
       localStorage.setItem("users", JSON.stringify(users));
     }
 
+    setName("");
+
     dispatch({ type: "LOGIN", payload: user });
   }
 
   function openPrivateChat(user) {
+    console.log("Opening private chat with user:", user);
+    // console.log(state.chats)
     const chat = state.chats.find(
       (c) =>
         c.type === "private" &&
         c.members.includes(state.currentUser.id) &&
-        c.members.includes(user.id),
+        c.members.includes(user.id)
     );
-
+console.log(chat)
     if (chat) dispatch({ type: "SET_ACTIVE_CHAT", payload: chat.id });
     else
       dispatch({
@@ -90,7 +113,10 @@ export default function Page() {
       type: "SEND_MESSAGE",
       payload: {
         id: uid(),
-        senderId: state.currentUser.id,
+        sender: {
+          id: state.currentUser.id,
+          name: state.currentUser.name,
+        },
         text,
         createdAt: Date.now(),
       },
@@ -108,34 +134,25 @@ export default function Page() {
     return <Login name={name} setName={setName} onLogin={login} />;
 
   return (
-    <main className="h-screen flex bg-gray-900 text-white relative">
-      {/* Sidebar */}
-      {isMenuOpen && (
-        <div className="w-72 shrink-0">
-          <Sidebar
-            currentUser={state.currentUser}
-            chats={state.chats}
-            openPrivateChat={openPrivateChat}
-            createGroup={createGroup}
-            setActiveChat={(id) =>
-              dispatch({ type: "SET_ACTIVE_CHAT", payload: id })
-            }
-            onLogout={() => dispatch({ type: "LOGOUT" })}
-          />
-        </div>
-      )}
-
-      {/* Chat Window */}
-      <div className="flex-1">
-        <ChatWindow
-          chat={activeChat}
-          currentUser={state.currentUser}
-          text={text}
-          setText={setText}
-          sendMessage={sendMessage}
-          onMenuClick={() => setIsMenuOpen(true)}
-        />
-      </div>
-    </main>
+    <div className="flex flex-row gap-0 h-screen w-full bg-gray-900 text-white ">
+      <Sidebar
+        currentUser={state.currentUser}
+        chats={state.chats}
+        openPrivateChat={openPrivateChat}
+        createGroup={createGroup}
+        setActiveChat={(id) =>
+          dispatch({ type: "SET_ACTIVE_CHAT", payload: id })
+        }
+        onLogout={() => dispatch({ type: "LOGOUT" })}
+        isMobile={isMobile}
+      />
+      <ChatWindow
+        chat={activeChat}
+        currentUser={state.currentUser}
+        text={text}
+        setText={setText}
+        sendMessage={sendMessage}
+      />
+    </div>
   );
 }
