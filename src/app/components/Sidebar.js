@@ -59,7 +59,7 @@ export default function Sidenav({
                       <SidebarMenuButton
                         onClick={() => {
                           openPrivateChat(u);
-                          toggleSidebar();
+                          if (!isMobile) toggleSidebar();
                         }}
                         className="flex items-center gap-3"
                       >
@@ -99,7 +99,7 @@ export default function Sidenav({
                       <SidebarMenuButton
                         onClick={() => {
                           setActiveChat(c.id);
-                          toggleSidebar();
+                         if (!isMobile) toggleSidebar();
                         }}
                         className="flex items-center gap-3"
                       >
