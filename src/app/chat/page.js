@@ -72,23 +72,23 @@ export default function Page() {
     });
   }, [router]);
 
-  function login() {
-    if (!name.trim()) return;
+  //   function login() {
+  //     if (!name.trim()) return;
 
-    let users = loadLocal("users", []);
-    let user = users.find((u) => u.name === name);
+  //     let users = loadLocal("users", []);
+  //     let user = users.find((u) => u.name === name);
 
-    if (!user) {
-      user = { id: uid(), name };
-      users.push(user);
-      localStorage.setItem("users", JSON.stringify(users));
-      router.push("/chat");
-    }
+  //     if (!user) {
+  //       user = { id: uid(), name };
+  //       users.push(user);
+  //       localStorage.setItem("users", JSON.stringify(users));
+  //       router.push("/chat");
+  //     }
 
-    setName("");
+  //     setName("");
 
-    dispatch({ type: "LOGIN", payload: user });
-  }
+  //     dispatch({ type: "LOGIN", payload: user });
+  //   }
 
   function openPrivateChat(user) {
     console.log("Opening private chat with user:", user);
@@ -124,12 +124,32 @@ export default function Page() {
     const name = prompt("Group name?");
     if (!name) return;
 
-    const members = loadLocal("users", []).map((u) => u.id);
+    const members = loadLocal("users", []).map((u) => ({
+      id: u.id,
+      name: u.name,
+    }));
 
     dispatch({
       type: "CREATE_GROUP",
-      payload: { id: uid(), type: "group", name, members, messages: [] },
+      payload: {
+        id: uid(),
+        type: "group",
+        name,
+        members,
+        messages: [],
+      },
     });
+  }
+
+  function addGroupUsers(chatId) {
+    console.log("Add member to chat:", chatId);
+  }
+  function removeGroupUsers(chatId, userId) {
+    // dispatch({
+    //   type: "REMOVE_GROUP_MEMBER",
+    //   payload: { chatId, userId },
+    // });
+    console.log("user removed", chatId, userId);
   }
 
   function sendMessage() {
@@ -156,6 +176,14 @@ export default function Page() {
     router.replace("/");
   };
 
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileUser, setProfileUser] = useState(null);
+
+  const handleProfile = (user) => {
+    setProfileUser(user);
+    setProfileOpen(true);
+  };
+
   const activeChat = state.chats.find((c) => c.id === state.activeChatId);
 
   if (!state.currentUser) return null;
@@ -172,14 +200,20 @@ export default function Page() {
         }
         onLogout={handleLogout}
         isMobile={isMobile}
+        openProfile={handleProfile}
       />
       <ChatWindow
         chat={activeChat}
         currentUser={state.currentUser}
         text={text}
-        state={state}
+        addUsers={addGroupUsers}
+        removeUsers={removeGroupUsers}
         setText={setText}
         sendMessage={sendMessage}
+        profileOpen={profileOpen}
+        profileUser={profileUser}
+        setProfileOpen={setProfileOpen}
+        handleProfile={handleProfile}
       />
     </div>
   );

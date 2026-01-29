@@ -29,9 +29,48 @@ export function chatReducer(state, action) {
     }
 
     case "CREATE_GROUP": {
-      const chats = [...state.chats, action.payload];
-      saveLocal("chats", chats);
-      return { ...state, chats, activeChatId: action.payload.id };
+      const updatedChats = [...state.chats, action.payload];
+
+      saveLocal("chats", updatedChats);
+
+      return {
+        ...state,
+        chats: updatedChats,
+        activeChatId: action.payload.id,
+      };
+    }
+
+    case "REMOVE_GROUP_MEMBER":
+      chat.members = chat.members.filter((m) => m.id !== action.payload.userId);
+
+    case "INIT_FROM_STORAGE": {
+      const { users, chats, currentUser } = action.payload;
+
+      const normalizedChats = chats.map((chat) => {
+        if (chat.type !== "group") return chat;
+
+        return {
+          ...chat,
+          members: chat.members.map((m) => {
+            // If already object, return as-is
+            if (typeof m === "object") return m;
+
+            // If string ID, convert to object
+            const user = users.find((u) => u.id === m);
+            return {
+              id: m,
+              name: user?.name || "Unknown",
+            };
+          }),
+        };
+      });
+
+      return {
+        ...state,
+        users,
+        chats: normalizedChats,
+        currentUser,
+      };
     }
 
     case "SEND_MESSAGE": {

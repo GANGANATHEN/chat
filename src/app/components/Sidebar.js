@@ -1,5 +1,7 @@
+import React, { useState } from "react";
 import { loadLocal } from "../utils/storage";
 import { Users, MessageCircle, LogOut, PanelLeftIcon } from "lucide-react";
+import UserProfile from "./UserProfile";
 
 import {
   Sidebar,
@@ -24,6 +26,7 @@ export default function Sidenav({
   createGroup,
   setActiveChat,
   isMobile,
+  openProfile,
 }) {
   const users = loadLocal("users", []);
   const { toggleSidebar, isOpen } = useSidebar();
@@ -45,6 +48,30 @@ export default function Sidenav({
 
         {/* CONTENT */}
         <SidebarContent className="flex-1 space-y-6 overflow-y-auto bg-gray-900 px-2">
+          {/* Profile */}
+          <SidebarGroup>
+            <SidebarGroupLabel className="flex items-center gap-2 px-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
+              Profile
+            </SidebarGroupLabel>
+
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem key={currentUser.id}>
+                  <SidebarMenuButton
+                    onClick={() => openProfile(currentUser)}
+                    className="flex items-center gap-3 py-6 rounded-lg text-gray-200 hover:bg-gray-800 
+                    hover:text-white/40 transition"
+                  >
+                    <div className="h-9 w-9 rounded-full bg-indigo-500 flex items-center justify-center text-sm font-semibold text-white">
+                      {currentUser.name[0].toUpperCase()}
+                    </div>
+                    <span className="truncate">{currentUser.name}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
           {/* USERS */}
           <SidebarGroup>
             <SidebarGroupLabel className="flex items-center gap-2 px-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
@@ -117,7 +144,8 @@ export default function Sidenav({
                 {chats
                   .filter(
                     (c) =>
-                      c.type === "group" && c.members.includes(currentUser.id),
+                      c.type === "group" &&
+                      c.members.some((m) => m.id === currentUser.id),
                   )
                   .map((c) => (
                     <SidebarMenuItem key={c.id}>
@@ -127,20 +155,20 @@ export default function Sidenav({
                           if (!isMobile) toggleSidebar();
                         }}
                         className="
-                      flex items-center gap-3 py-6 rounded-lg
-                      text-gray-200
-                      hover:bg-gray-800
-                      hover:text-white/40
-                      transition-colors
-                    "
+          flex items-center gap-3 py-6 rounded-lg
+          text-gray-200
+          hover:bg-gray-800
+          hover:text-white/40
+          transition-colors
+        "
                       >
                         <div
                           className="
-                      h-9 w-9 rounded-full
-                      bg-red-500
-                      flex items-center justify-center
-                      text-sm font-semibold text-white
-                    "
+            h-9 w-9 rounded-full
+            bg-red-500
+            flex items-center justify-center
+            text-sm font-semibold text-white
+          "
                         >
                           {c.name[0].toUpperCase()}
                         </div>

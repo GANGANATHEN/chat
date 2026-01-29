@@ -1,6 +1,15 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useEffect, useRef } from "react";
-import { Images, MicVocal, FilePlus, SendHorizontal } from "lucide-react";
+import UserProfile from "../components/UserProfile";
+import GroupProfile from "../components/GroupProfile";
+import { useState, useEffect, useRef } from "react";
+import {
+  Images,
+  MicVocal,
+  FilePlus,
+  SendHorizontal,
+  Users,
+  User,
+} from "lucide-react";
 
 export default function ChatWindow({
   chat,
@@ -8,8 +17,12 @@ export default function ChatWindow({
   text,
   setText,
   sendMessage,
-  state,
-  users,
+  addUsers,
+  removeUsers,
+  profileOpen,
+  profileUser,
+  setProfileOpen,
+  handleProfile,
 }) {
   // ref for new messages
   const bottomRef = useRef(null);
@@ -28,12 +41,58 @@ export default function ChatWindow({
       <div className="flex items-center gap-x-4 px-3.5 py-3 ">
         <SidebarTrigger className="md:hidden [&_svg]:size-6! hover:bg-transparent! text-gray-500 hover:text-white" />
 
-        <div className="font-semibold text-lg truncate">
-          {chat?.type === "group" ? chat.name : otherUser?.name || "Chat"}
-          {chat?.type === "group" && (
-            <span className="text-red-500 ml-2 text-sm">(Group)</span>
-          )}
-        </div>
+        {["group", "private"].includes(chat?.type) && (
+          <div className="flex items-center gap-x-2 font-semibold text-lg truncate">
+            <button
+              onClick={() => {
+                if (chat.type === "group") {
+                  // open group profile
+                  handleProfile(chat);
+                } else {
+                  // private chat for other user
+                  const otherUser = chat.members.find(
+                    (m) => m.id !== currentUser.id,
+                  );
+                  handleProfile(otherUser);
+                }
+              }}
+              className="rounded-full p-2 bg-gray-600 cursor-pointer"
+            >
+              {chat?.type === "group" ? (
+                <Users size={17} />
+              ) : (
+                <User size={17} />
+              )}
+            </button>
+
+            {chat?.type === "group" ? chat.name : otherUser?.name || "Chat"}
+          </div>
+        )}
+
+        {profileOpen && profileUser && (
+          <>
+            {profileUser.type === "group" ? (
+              <GroupProfile
+                chat={profileUser}
+                onClose={() => setProfileOpen(false)}
+                onAddMember={(userId) => addUsers(profileUser.id, userId)}
+                onRemoveMember={(userId) => removeUsers(profileUser.id, userId)}
+              />
+            ) : (
+              <UserProfile
+                user={profileUser}
+                currentUser={currentUser}
+                onClose={() => setProfileOpen(false)}
+                onSave={(newName) =>
+                  dispatch({
+                    type: "UPDATE_USER_NAME",
+                    payload: { id: currentUser.id, name: newName },
+                  })
+                }
+              />
+            )}
+          </>
+        )}
       </div>
 
       {!chat ? (
@@ -45,10 +104,6 @@ export default function ChatWindow({
           <div className="flex-1 min-h-0 p-4 overflow-y-auto custom-scrollbar space-y-3">
             {chat.messages.map((m) => {
               const isMe = m.sender?.id === currentUser.id;
-              {
-                /* console.log("message", m); */
-              }
-              console.log(state);
 
               return (
                 <div
