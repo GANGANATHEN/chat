@@ -72,26 +72,32 @@ export default function Page() {
 
   function openPrivateChat(user) {
     console.log("Opening private chat with user:", user);
-    // console.log(state.chats)
+
     const chat = state.chats.find(
       (c) =>
         c.type === "private" &&
-        c.members.includes(state.currentUser.id) &&
-        c.members.includes(user.id)
+        c.members.some((m) => m.id === state.currentUser.id) &&
+        c.members.some((m) => m.id === user.id),
     );
-console.log(chat)
-    if (chat) dispatch({ type: "SET_ACTIVE_CHAT", payload: chat.id });
-    else
+
+    console.log("Found chat:", chat);
+
+    if (chat) {
+      dispatch({ type: "SET_ACTIVE_CHAT", payload: chat.id });
+    } else {
       dispatch({
         type: "CREATE_CHAT",
         payload: {
           id: uid(),
           type: "private",
-          name: user.name,
-          members: [state.currentUser.id, user.id],
+          members: [
+            { id: state.currentUser.id, name: state.currentUser.name },
+            { id: user.id, name: user.name },
+          ],
           messages: [],
         },
       });
+    }
   }
 
   function createGroup() {
@@ -125,10 +131,7 @@ console.log(chat)
     setText("");
   }
 
-  const activeChat = state.chats.find(
-    (c) =>
-      c.id === state.activeChatId && c.members.includes(state.currentUser?.id),
-  );
+  const activeChat = state.chats.find((c) => c.id === state.activeChatId);
 
   if (!state.currentUser)
     return <Login name={name} setName={setName} onLogin={login} />;
@@ -150,6 +153,7 @@ console.log(chat)
         chat={activeChat}
         currentUser={state.currentUser}
         text={text}
+        state={state}
         setText={setText}
         sendMessage={sendMessage}
       />

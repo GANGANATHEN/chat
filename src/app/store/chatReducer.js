@@ -2,7 +2,6 @@ import { saveLocal, loadLocal } from "../utils/storage";
 
 export function chatReducer(state, action) {
   switch (action.type) {
-    
     case "INIT_FROM_STORAGE":
       return {
         ...state,
@@ -15,7 +14,7 @@ export function chatReducer(state, action) {
       sessionStorage.setItem("currentUser", JSON.stringify(action.payload));
       return { ...state, currentUser: action.payload };
     }
-    
+
     case "LOGOUT":
       sessionStorage.removeItem("currentUser");
       return { ...state, currentUser: null, activeChatId: null };

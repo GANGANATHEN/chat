@@ -1,5 +1,6 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useEffect, useRef } from "react";
+import { Images, MicVocal, FilePlus, SendHorizontal } from "lucide-react";
 
 export default function ChatWindow({
   chat,
@@ -7,9 +8,13 @@ export default function ChatWindow({
   text,
   setText,
   sendMessage,
+  state,
+  users,
 }) {
   // ref for new messages
   const bottomRef = useRef(null);
+
+  const otherUser = chat?.members?.find((u) => u.id !== currentUser.id);
 
   // scroll to bottom on new message
   useEffect(() => {
@@ -20,10 +25,11 @@ export default function ChatWindow({
 
   return (
     <section className="flex-1 w-full h-full flex flex-col bg-gray-900 overflow-hidden">
-      <div className="flex items-center gap-x-4 p-4 border-b border-gray-700">
-        <SidebarTrigger className="md:hidden" />
+      <div className="flex items-center gap-x-4 px-3.5 py-3 ">
+        <SidebarTrigger className="md:hidden [&_svg]:size-6! hover:bg-transparent! text-gray-500 hover:text-white" />
+
         <div className="font-semibold text-lg truncate">
-          {chat ? chat.name : "Chat"}
+          {chat?.type === "group" ? chat.name : otherUser?.name || "Chat"}
           {chat?.type === "group" && (
             <span className="text-red-500 ml-2 text-sm">(Group)</span>
           )}
@@ -38,10 +44,11 @@ export default function ChatWindow({
         <>
           <div className="flex-1 min-h-0 p-4 overflow-y-auto custom-scrollbar space-y-3">
             {chat.messages.map((m) => {
-              const isMe =
-                m.sender?.id === currentUser.id ||
-                m.senderId === currentUser.id;
-              console.log("message", m);
+              const isMe = m.sender?.id === currentUser.id;
+              {
+                /* console.log("message", m); */
+              }
+              console.log(state);
 
               return (
                 <div
@@ -54,11 +61,7 @@ export default function ChatWindow({
                 >
                   <div className="flex gap-x-4 justify-between items-center mb-1">
                     <span className="text-xs font-semibold text-gray-300">
-                      {isMe
-                        ? "You"
-                        : chat.type === "group"
-                          ? m.sender.name
-                          : chat.name}
+                      {m.sender.id === currentUser.id ? "You" : m.sender.name}
                     </span>
                     <span className="text-[10px] text-gray-400">
                       {new Date(m.createdAt).toLocaleTimeString()}
@@ -76,21 +79,72 @@ export default function ChatWindow({
               e.preventDefault();
               sendMessage();
             }}
-            className="p-3 border-t border-gray-700 flex gap-2"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+              }
+            }}
+            className="px-3 py-3"
           >
-            <input
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              className="flex-1 bg-gray-800 border border-gray-700 px-3 py-2 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500"
-              placeholder="Type a message..."
-            />
-
-            <button
-              type="submit"
-              className="bg-blue-600 px-4 rounded-lg text-sm font-semibold hover:bg-blue-700"
+            <div
+              className="mx-auto max-w-3xl flex justify-center items-center gap-2
+            bg-gray-800 border border-gray-700 rounded-3xl px-3 py-2 
+            focus-within:border-blue-500 transition"
             >
-              Send
-            </button>
+              {/* ACTIONS */}
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-700 transition"
+                  title="Attach file"
+                >
+                  <FilePlus size={18} />
+                </button>
+
+                <button
+                  type="button"
+                  className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-700 transition"
+                  title="Upload image"
+                >
+                  <Images size={18} />
+                </button>
+
+                <button
+                  type="button"
+                  className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-700 transition"
+                  title="Voice message"
+                >
+                  <MicVocal size={18} />
+                </button>
+              </div>
+
+              {/* INPUT */}
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                rows={1}
+                placeholder="Message....."
+                className="flex-1 resize-none bg-transparent text-sm text-gray-100 placeholder-gray-400 focus:outline-none max-h-40 px-1"
+                onInput={(e) => {
+                  e.target.style.height = "auto";
+                  e.target.style.height = e.target.scrollHeight + "px";
+                }}
+              />
+
+              {/* SEND */}
+              <button
+                type="submit"
+                disabled={!text.trim()}
+                className="p-2 flex items-center justify-center text-center rounded-full 
+                bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700
+                disabled:text-gray-500 text-white shadow-sm hover:shadow-md transition-all 
+                duration-200"
+                title="Send"
+              >
+                <SendHorizontal size={16} className="translate-x-px" />
+              </button>
+            </div>
           </form>
         </>
       )}
