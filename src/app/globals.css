@@ -124,6 +124,22 @@
   }
 }
 
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-color: transparent transparent; /* Firefox fallback for colors */
+}
+
+/* Apply Firefox-only property only when supported */
+@supports (scrollbar-width: none) {
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+}
+
+/* Hide scrollbar for WebKit-based browsers */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 .custom-scrollbar::-webkit-scrollbar {
   display: block !important;
   width: 4px;
@@ -144,3 +160,22 @@
   max-height: 100vh; /* screen height */
   overflow-y: auto;
 }
+
+.sidebar-scroll-height {
+  max-height: 20vh; /* screen height */
+  overflow-y: auto;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.25s ease-out;
+}
+

@@ -40,8 +40,41 @@ export function chatReducer(state, action) {
       };
     }
 
-    case "REMOVE_GROUP_MEMBER":
-      chat.members = chat.members.filter((m) => m.id !== action.payload.userId);
+    case "ADD_GROUP_MEMBER": {
+      const { chatId, user } = action.payload;
+
+      if (!user || typeof user !== "object") return state;
+
+      return {
+        ...state,
+        chats: state.chats.map((chat) => {
+          if (chat.id !== chatId) return chat;
+
+          const alreadyExists = chat.members.some((m) => m.id === user.id);
+
+          if (alreadyExists) return chat;
+
+          return {
+            ...chat,
+            members: [...chat.members, user],
+          };
+        }),
+      };
+    }
+
+    case "REMOVE_GROUP_MEMBER": {
+      return {
+        ...state,
+        chats: state.chats.map((chat) => {
+          if (chat.id !== action.payload.chatId) return chat;
+
+          return {
+            ...chat,
+            members: chat.members.filter((m) => m.id !== action.payload.userId),
+          };
+        }),
+      };
+    }
 
     case "INIT_FROM_STORAGE": {
       const { users, chats, currentUser } = action.payload;

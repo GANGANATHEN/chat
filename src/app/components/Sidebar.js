@@ -47,10 +47,10 @@ export default function Sidenav({
         </SidebarHeader>
 
         {/* CONTENT */}
-        <SidebarContent className="flex-1 space-y-6 overflow-y-auto bg-gray-900 px-2">
+        <SidebarContent className="flex-1 overflow-y-auto bg-gray-900 px-2">
           {/* Profile */}
           <SidebarGroup>
-            <SidebarGroupLabel className="flex items-center gap-2 px-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
+            <SidebarGroupLabel className="flex items-center gap-x-2 px-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
               Profile
             </SidebarGroupLabel>
 
@@ -74,11 +74,13 @@ export default function Sidenav({
 
           {/* USERS */}
           <SidebarGroup>
-            <SidebarGroupLabel className="flex items-center gap-2 px-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
+            <SidebarGroupLabel className="flex items-center gap-x-2 px-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
               <Users size={14} /> Users
             </SidebarGroupLabel>
 
-            <SidebarGroupContent>
+            <SidebarGroupContent
+              className={`sidebar-scroll-height custom-scrollbar`}
+            >
               <SidebarMenu>
                 {otherUsers && otherUsers.length > 0 ? (
                   otherUsers.map((u) => (
@@ -122,11 +124,13 @@ export default function Sidenav({
 
           {/* GROUPS */}
           <SidebarGroup>
-            <SidebarGroupLabel className="flex items-center gap-2 px-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
+            <SidebarGroupLabel className="flex items-center gap-x-2 px-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
               <MessageCircle size={14} /> Groups
             </SidebarGroupLabel>
 
-            <SidebarGroupContent className="space-y-3 px-2 py-2.5">
+            <SidebarGroupContent
+              className={`space-y-3 px-2 py-2.5`}
+            >
               <button
                 onClick={createGroup}
                 className="
@@ -140,7 +144,7 @@ export default function Sidenav({
                 + Create Group
               </button>
 
-              <SidebarMenu>
+              <SidebarMenu className={`sidebar-scroll-height custom-scrollbar space-y-3 px-2 py-2.5`}>
                 {chats
                   .filter(
                     (c) =>

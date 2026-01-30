@@ -2,7 +2,6 @@
 import { useEffect, useReducer, useState } from "react";
 import { chatReducer } from "../../app/store/chatReducer";
 import { uid, loadLocal, loadSession } from "../../app//utils/storage";
-import Login from "../../app/components/Login";
 import Sidebar from "../../app/components/Sidebar";
 import ChatWindow from "../../app/components/ChatWindow";
 import { useRouter } from "next/navigation";
@@ -19,7 +18,6 @@ export default function Page() {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const [isMobile, setIsMobile] = useState(false);
 
-  const [name, setName] = useState("");
   const [text, setText] = useState("");
 
   // Initialize state from localStorage and sessionStorage
@@ -71,6 +69,13 @@ export default function Page() {
       payload: { users, chats, currentUser },
     });
   }, [router]);
+
+  // state management for remove group members
+  useEffect(() => {
+    if (state.chats.length > 0) {
+      localStorage.setItem("chats", JSON.stringify(state.chats));
+    }
+  }, [state.chats]);
 
   //   function login() {
   //     if (!name.trim()) return;
@@ -141,14 +146,25 @@ export default function Page() {
     });
   }
 
-  function addGroupUsers(chatId) {
-    console.log("Add member to chat:", chatId);
+  function addGroupUsers(chatId, user) {
+    if (!user || !user.id || !user.name) {
+      console.error("Invalid user object passed:", user);
+      return;
+    }
+
+    dispatch({
+      type: "ADD_GROUP_MEMBER",
+      payload: { chatId, user },
+    });
+
+    console.log("user added", chatId, user);
   }
+
   function removeGroupUsers(chatId, userId) {
-    // dispatch({
-    //   type: "REMOVE_GROUP_MEMBER",
-    //   payload: { chatId, userId },
-    // });
+    dispatch({
+      type: "REMOVE_GROUP_MEMBER",
+      payload: { chatId, userId },
+    });
     console.log("user removed", chatId, userId);
   }
 

@@ -1,88 +1,117 @@
 import { X, Minus, UserPlus, Users } from "lucide-react";
+import { useState } from "react";
+import AddMemberDrawer from "./AddMemberDrawer";
 
 export default function GroupProfile({
   chat,
   onClose,
   onRemoveMember,
   onAddMember,
+  currentUser,
 }) {
+  const [addOpen, setAddOpen] = useState(false);
+
   return (
-    <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-end z-50"
-      onClick={onClose}
-    >
-      <div
-        className="w-105 h-full bg-gray-900 flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="fixed inset-0 z-50 bg-black/50 flex justify-end">
+      {/* DRAWER */}
+      <div className="w-105 max-w-full bg-gray-950 h-full flex flex-col shadow-2xl animate-slideIn">
         {/* HEADER */}
-        <div className="relative px-6 py-5 border-b border-gray-800">
+        <div className="relative p-6 border-b border-gray-800">
           <button
             onClick={onClose}
             className="absolute right-4 top-4 text-gray-400 hover:text-white"
           >
-            <X />
+            <X size={20} />
           </button>
 
-          <div className="flex flex-col items-center text-center">
-            <div className="h-16 w-16 rounded-full bg-indigo-600 flex items-center justify-center text-xl font-bold">
+          <div className="flex items-center gap-4">
+            {/* GROUP AVATAR */}
+            <div className="h-14 w-14 rounded-full bg-linear-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-xl font-bold">
               {chat.name[0].toUpperCase()}
             </div>
 
-            <h2 className="text-xl font-semibold mt-3">{chat.name}</h2>
-            <p className="text-sm text-gray-400 mt-1 flex items-center gap-1">
-              <Users size={14} />
-              {chat.members.length} members
-            </p>
+            <div>
+              <h2 className="text-xl font-semibold">{chat.name}</h2>
+              <p className="text-sm text-gray-400 flex items-center gap-1">
+                <Users size={14} />
+                {chat.members.length} members
+              </p>
+            </div>
           </div>
         </div>
 
         {/* MEMBERS */}
         <div className="flex-1 overflow-y-auto px-5 py-4">
-          <h3 className="text-xs uppercase text-gray-400 mb-3 tracking-wide">
-            Group Members
+          <h3 className="text-xs uppercase tracking-wide text-gray-500 mb-3">
+            Members
           </h3>
 
-          <ul className="space-y-2">
-            {chat.members.map((m) => (
-              <li
-                key={m.id}
-                className="group flex items-center justify-between bg-gray-800/60 hover:bg-gray-800 px-3 py-2 rounded-lg transition"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-full bg-gray-700 flex items-center justify-center font-semibold">
-                    {m.name[0]?.toUpperCase()}
-                  </div>
+          <div className="space-y-2 flex-1 overflow-y-auto">
+            {chat.members
+              .slice()
+              .sort((a, b) => {
+                if (a.id === currentUser.id) return -1; // current user first
+                if (b.id === currentUser.id) return 1; // alp
 
-                  <div>
-                    <p className="text-sm font-medium text-white">{m.name}</p>
-                    <p className="text-xs text-gray-400">Member</p>
-                  </div>
-                </div>
+                const nameCompare = a.name.localeCompare(b.name);
+                if (nameCompare !== 0) return nameCompare;
 
-                <button
-                  onClick={() => onRemoveMember(m.id)}
-                  className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-500 transition"
-                  title="Remove member"
+                return a.id.localeCompare(b.id); // if names same
+              })
+
+              .map((m) => (
+                <div
+                  key={m.id}
+                  className="group flex items-center justify-between bg-gray-900 hover:bg-gray-800 transition rounded-lg px-3 py-2"
                 >
-                  <Minus size={16} />
-                </button>
-              </li>
-            ))}
-          </ul>
+                  {/* Avatar + Name */}
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-full bg-indigo-500 flex items-center justify-center text-sm font-semibold text-white">
+                      {(m.name?.[0] || "?").toUpperCase()}
+                    </div>
+                    <span className="text-sm text-white">
+                      {m.name || "Unknown"}
+                    </span>
+                  </div>
+
+                  {/* Remove/Leave button */}
+                  <button
+                    onClick={() => onRemoveMember(m.id)}
+                    className="opacity-0 group-hover:opacity-100 transition flex items-center gap-1 text-red-400 hover:text-red-300"
+                    title={
+                      currentUser.id === m.id ? "Leave group" : "Remove member"
+                    }
+                  >
+                    <Minus size={16} />
+                    <span className="text-xs">
+                      {currentUser.id === m.id ? "Leave" : "Remove"}
+                    </span>
+                  </button>
+                </div>
+              ))}
+          </div>
         </div>
 
         {/* FOOTER */}
-        <div className="p-4 border-t border-gray-800">
+        <div className="p-4 border-t border-gray-800 bg-gray-950">
           <button
-            onClick={onAddMember}
-            className="w-full bg-indigo-600 hover:bg-indigo-500 transition py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium"
+            onClick={() => setAddOpen(true)}
+            className="w-full bg-indigo-600 hover:bg-indigo-500 transition py-3 rounded-xl flex items-center justify-center gap-2 font-medium"
           >
             <UserPlus size={18} />
             Add member
           </button>
         </div>
       </div>
+
+      {/* ADD MEMBER DRAWER */}
+      {addOpen && (
+        <AddMemberDrawer
+          chat={chat}
+          onAdd={onAddMember}
+          onClose={() => setAddOpen(false)}
+        />
+      )}
     </div>
   );
 }

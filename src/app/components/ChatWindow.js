@@ -77,6 +77,7 @@ export default function ChatWindow({
                 onClose={() => setProfileOpen(false)}
                 onAddMember={(userId) => addUsers(profileUser.id, userId)}
                 onRemoveMember={(userId) => removeUsers(profileUser.id, userId)}
+                currentUser={currentUser}
               />
             ) : (
               <UserProfile

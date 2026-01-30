@@ -13,6 +13,37 @@ export default function UserProfile({ user, currentUser, onClose, onSave }) {
     setEditing(false);
   }
 
+  function handleDelete() {
+    const confirmDelete = confirm(
+      "Are you sure? Your account and all chats will be deleted.",
+    );
+
+    if (!confirmDelete) return;
+
+    // 1. Remove user from users
+    const users = JSON.parse(localStorage.getItem("users")) || [];
+    const updatedUsers = users.filter((u) => u.id !== user.id);
+    localStorage.setItem("users", JSON.stringify(updatedUsers));
+
+    // 2. Remove user from chats
+    const chats = JSON.parse(localStorage.getItem("chats")) || [];
+    const updatedChats = chats
+      .map((chat) => ({
+        ...chat,
+        members: chat.members.filter((m) => m.id !== user.id),
+        messages: chat.messages.filter((msg) => msg.sender.id !== user.id),
+      }))
+      .filter((chat) => chat.members.length > 0);
+
+    localStorage.setItem("chats", JSON.stringify(updatedChats));
+
+    // 3. Clear session
+    sessionStorage.removeItem("currentUser");
+
+    // 4. Redirect
+    window.location.href = "/";
+  }
+
   return (
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-end z-50"
@@ -97,6 +128,17 @@ export default function UserProfile({ user, currentUser, onClose, onSave }) {
             </p>
           </div>
         </div>
+
+        {/* DELETE ACCOUNT */}
+        {isMe && (
+          <div className="mt-auto px-5 py-4 border-t border-gray-800">
+            <button
+              onClick={handleDelete}
+              className="w-full py-2.5 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white transition font-medium">
+              Delete Account
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
