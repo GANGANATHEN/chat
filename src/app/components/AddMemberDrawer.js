@@ -47,7 +47,7 @@ export default function AddMemberDrawer({ chat, onAdd, onClose }) {
           )}
 
           {filteredUsers.map((u) => {
-            console.log(u);
+            {/* console.log(u); */}
             return (
               <div
                 key={u.id}

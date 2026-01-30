@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { loadLocal } from "../utils/storage";
-import { Users, MessageCircle, LogOut, PanelLeftIcon } from "lucide-react";
+import { Users, MessageCircle, LogOut, MessageSquareText } from "lucide-react";
 import UserProfile from "./UserProfile";
-
 import {
   Sidebar,
   SidebarContent,
@@ -27,9 +26,27 @@ export default function Sidenav({
   setActiveChat,
   isMobile,
   openProfile,
+  sidebarItems,
+  openChat,
 }) {
   const users = loadLocal("users", []);
   const { toggleSidebar, isOpen } = useSidebar();
+
+  const sortedSidebarItems = useMemo(() => {
+    return [...sidebarItems].sort((a, b) => {
+      // both have messages → recent first
+      if (a.lastMessageAt && b.lastMessageAt) {
+        return b.lastMessageAt - a.lastMessageAt;
+      }
+
+      // only one has messages
+      if (a.lastMessageAt && !b.lastMessageAt) return -1;
+      if (!a.lastMessageAt && b.lastMessageAt) return 1;
+
+      // no messages → alphabetical
+      return a.title.localeCompare(b.title);
+    });
+  }, [sidebarItems]);
 
   const otherUsers = users?.filter((u) => u.id !== currentUser.id);
 
@@ -47,7 +64,7 @@ export default function Sidenav({
         </SidebarHeader>
 
         {/* CONTENT */}
-        <SidebarContent className="flex-1 overflow-y-auto bg-gray-900 px-2">
+        <SidebarContent className="custom-scrollbar flex-1 overflow-y-auto bg-gray-900 px-2">
           {/* Profile */}
           <SidebarGroup>
             <SidebarGroupLabel className="flex items-center gap-x-2 px-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
@@ -72,6 +89,59 @@ export default function Sidenav({
             </SidebarGroupContent>
           </SidebarGroup>
 
+          {/* All Chats */}
+          {/* <SidebarGroup>
+            <SidebarGroupLabel className="flex items-center gap-x-2 px-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
+              <MessageSquareText size={14} /> All Chats
+            </SidebarGroupLabel>
+
+            <SidebarGroupContent
+              className={`sidebar-scroll-height custom-scrollbar`}
+            >
+              <SidebarMenu>
+                {sortedSidebarItems.length > 0 ? (
+                  sortedSidebarItems.map((item) => (
+                    <SidebarMenuItem key={item.chatId} className="py-1">
+                      <SidebarMenuButton
+                        onClick={() => {
+                          openChat(item.chatId);
+                          if (!isMobile) toggleSidebar();
+                        }}
+                        className="flex items-center gap-3 py-6 rounded-lg
+                     text-gray-200 hover:bg-gray-800 transition"
+                      >
+                        <div
+                          className="h-9 w-9 rounded-full bg-indigo-500
+                          flex items-center justify-center
+                          text-sm font-semibold text-white"
+                        >
+                          {item.avatarLetter.toUpperCase()}
+                        </div>
+
+                        <span className="flex-1 truncate">{item.title}</span>
+
+                        {item.unreadCount > 0 && (
+                          <span
+                            className="ml-auto min-w-4.5 h-4.5
+                             text-xs bg-blue-600 text-white
+                             rounded-full flex items-center
+                             justify-center"
+                          >
+                            {item.unreadCount}
+                          </span>
+                        )}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))
+                ) : (
+                  <div className="px-3 py-2 text-sm text-gray-500">
+                    No chats
+                  </div>
+                )}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup> */}
+
           {/* USERS */}
           <SidebarGroup>
             <SidebarGroupLabel className="flex items-center gap-x-2 px-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
@@ -83,36 +153,46 @@ export default function Sidenav({
             >
               <SidebarMenu>
                 {otherUsers && otherUsers.length > 0 ? (
-                  otherUsers.map((u) => (
-                    <SidebarMenuItem key={u.id} className={`py-1`}>
-                      <SidebarMenuButton
-                        onClick={() => {
-                          openPrivateChat(u);
-                          if (!isMobile) toggleSidebar();
-                        }}
-                        className="
+                  otherUsers
+                    .slice()
+                    .sort((a, b) => {
+                      // sort alphabetically by name
+                      const nameCompare = a.name.localeCompare(b.name);
+                      if (nameCompare !== 0) return nameCompare;
+
+                      // if names are same, sort by id
+                      return a.id.localeCompare(b.id);
+                    })
+                    .map((u) => (
+                      <SidebarMenuItem key={u.id} className={`py-1`}>
+                        <SidebarMenuButton
+                          onClick={() => {
+                            openPrivateChat(u);
+                            if (!isMobile) toggleSidebar();
+                          }}
+                          className="
                       flex items-center gap-3 py-6 rounded-lg
                       text-gray-200
                       hover:bg-gray-800
                       hover:text-white/40
                       transition-colors
                     "
-                      >
-                        <div
-                          className="
+                        >
+                          <div
+                            className="
                       h-9 w-9 rounded-full
                       bg-indigo-500
                       flex items-center justify-center
                       text-sm font-semibold text-white
                     "
-                        >
-                          {u.name[0].toUpperCase()}
-                        </div>
+                          >
+                            {u.name[0].toUpperCase()}
+                          </div>
 
-                        <span className="truncate">{u.name}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))
+                          <span className="truncate">{u.name}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))
                 ) : (
                   <div className="px-3 py-2 text-sm text-gray-500">
                     No other users available
@@ -128,9 +208,7 @@ export default function Sidenav({
               <MessageCircle size={14} /> Groups
             </SidebarGroupLabel>
 
-            <SidebarGroupContent
-              className={`space-y-3 px-2 py-2.5`}
-            >
+            <SidebarGroupContent className={`space-y-3 px-2 py-2.5`}>
               <button
                 onClick={createGroup}
                 className="
@@ -144,13 +222,21 @@ export default function Sidenav({
                 + Create Group
               </button>
 
-              <SidebarMenu className={`sidebar-scroll-height custom-scrollbar space-y-3 px-2 py-2.5`}>
+              <SidebarMenu
+                className={`sidebar-scroll-height custom-scrollbar space-y-3 px-2 py-2.5`}
+              >
                 {chats
                   .filter(
                     (c) =>
                       c.type === "group" &&
                       c.members.some((m) => m.id === currentUser.id),
                   )
+                  .slice()
+                  .sort((a, b) => {
+                    const nameCompare = a.name.localeCompare(b.name);
+                    if (nameCompare !== 0) return nameCompare;
+                    return a.id.localeCompare(b.id);
+                  })
                   .map((c) => (
                     <SidebarMenuItem key={c.id}>
                       <SidebarMenuButton

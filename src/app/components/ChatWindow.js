@@ -23,6 +23,8 @@ export default function ChatWindow({
   profileUser,
   setProfileOpen,
   handleProfile,
+  getSenderName,
+  userMap
 }) {
   // ref for new messages
   const bottomRef = useRef(null);
@@ -65,7 +67,7 @@ export default function ChatWindow({
               )}
             </button>
 
-            {chat?.type === "group" ? chat.name : otherUser?.name || "Chat"}
+            {chat?.type === "group" ? `${chat.name} group` : otherUser?.name || "Chat"}
           </div>
         )}
 
@@ -123,6 +125,10 @@ export default function ChatWindow({
                       {new Date(m.createdAt).toLocaleTimeString()}
                     </span>
                   </div>
+                  <div className="text-xs text-gray-400">
+                    {getSenderName(m, currentUser, userMap)}
+                  </div>
+
                   {m.text}
                 </div>
               );

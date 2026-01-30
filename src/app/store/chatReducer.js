@@ -130,6 +130,30 @@ export function chatReducer(state, action) {
       return { ...state, chats };
     }
 
+    case "MARK_CHAT_AS_READ": {
+      const { chatId, userId } = action.payload;
+
+      return {
+        ...state,
+        chats: state.chats.map((chat) => {
+          if (chat.id !== chatId) return chat;
+
+          return {
+            ...chat,
+            messages: chat.messages.map((m) => {
+              // already read → no change
+              if (m.readBy?.includes(userId)) return m;
+
+              return {
+                ...m,
+                readBy: [...(m.readBy || []), userId],
+              };
+            }),
+          };
+        }),
+      };
+    }
+
     case "SYNC_CHATS":
       return { ...state, chats: action.payload };
 
