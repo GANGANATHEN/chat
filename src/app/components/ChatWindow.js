@@ -25,6 +25,7 @@ export default function ChatWindow({
   handleProfile,
   getSenderName,
   userMap,
+  setSelectedUser,
   onLogout
 }) {
   // ref for new messages
@@ -42,8 +43,6 @@ export default function ChatWindow({
   return (
     <section className="flex-1 w-full h-full flex flex-col bg-gray-900 overflow-hidden">
       <div className="flex items-center gap-x-4 px-3.5 py-3 ">
-        <SidebarTrigger className="md:hidden [&_svg]:size-6! hover:bg-transparent! text-gray-500 hover:text-white" />
-
         {["group", "private"].includes(chat?.type) && (
           <div className="flex items-center gap-x-2 font-semibold text-lg truncate">
             <button

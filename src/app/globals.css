@@ -139,6 +139,7 @@
 /* Hide scrollbar for WebKit-based browsers */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+  overflow-y:auto;
 }
 .custom-scrollbar::-webkit-scrollbar {
   display: block !important;

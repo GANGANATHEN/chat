@@ -30,7 +30,7 @@ export default function Section({
       </div>
 
       {/* CONTENT */}
-      <div className="p-3 overflow-y-auto flex-1">{children}</div>
+      <div className="overflow-y-auto flex-1">{children}</div>
     </div>
   );
 }

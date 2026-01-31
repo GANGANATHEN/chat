@@ -8,6 +8,7 @@ export default function GroupProfile({
   onRemoveMember,
   onAddMember,
   currentUser,
+  setSelectedUser,
 }) {
   const [addOpen, setAddOpen] = useState(false);
 
@@ -66,7 +67,10 @@ export default function GroupProfile({
                 >
                   {/* Avatar + Name */}
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-full bg-indigo-500 flex items-center justify-center text-sm font-semibold text-white">
+                    <div
+                      onClick={() => setSelectedUser(m)}
+                      className="cursor-pointer h-9 w-9 rounded-full bg-indigo-500 flex items-center justify-center text-sm font-semibold text-white"
+                    >
                       {(m.name?.[0] || "?").toUpperCase()}
                     </div>
                     <span className="text-sm text-white">
@@ -77,7 +81,7 @@ export default function GroupProfile({
                   {/* Remove/Leave button */}
                   <button
                     onClick={() => onRemoveMember(m.id)}
-                    className="opacity-0 group-hover:opacity-100 transition flex items-center gap-1 text-red-400 hover:text-red-300"
+                    className="cursor-pointer opacity-0 group-hover:opacity-100 transition flex items-center gap-1 text-red-400 hover:text-red-300"
                     title={
                       currentUser.id === m.id ? "Leave group" : "Remove member"
                     }

@@ -1,13 +1,21 @@
 "use client";
 import { useEffect, useReducer, useState, useMemo } from "react";
-import { chatReducer } from "../../app/store/chatReducer";
-import { uid, loadLocal, loadSession } from "../../app//utils/storage";
-import Sidebar from "../../app/components/Sidebar";
-import ChatWindow from "../../app/components/ChatWindow";
+import { chatReducer } from "../store/chatReducer";
+import { uid, loadLocal, loadSession } from "../utils/storage";
+import ChatWindow from "../components/ChatWindow";
+import SidebarIcon from "../components/SidebarIcon";
+import Section from "../components/Section";
 import { useRouter } from "next/navigation";
+// data
+import Profile from "../components/Profile";
+import AllChats from "../components/AllChats";
+import Users from "../components/Users";
+import Groups from "../components/Groups";
 
 export default function Page() {
   const router = useRouter();
+
+  // for useReduser
   const initialState = {
     users: [],
     chats: [],
@@ -16,21 +24,37 @@ export default function Page() {
   };
 
   const [state, dispatch] = useReducer(chatReducer, initialState);
+
+  /* -------------------- UI STATE -------------------- */
   const [isMobile, setIsMobile] = useState(false);
-
+  // for chat page open
+  const [activeSection, setActiveSection] = useState(null);
+  const [isSectionOpen, setIsSectionOpen] = useState(false);
+  // for user and group profile open
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileUser, setProfileUser] = useState(null);
+  // for group user profile open
+  const [selectedUser, setSelectedUser] = useState(null);
+  // for message
   const [text, setText] = useState("");
+  // console.log(isSectionOpen);
 
-  // Initialize state from localStorage and sessionStorage
+  /* -------------------- INIT -------------------- */
   useEffect(() => {
     const users = loadLocal("users", []);
     const chats = loadLocal("chats", []);
     const currentUser = loadSession("currentUser");
 
+    if (!currentUser) {
+      router.replace("/");
+      return;
+    }
+
     dispatch({
       type: "INIT_FROM_STORAGE",
       payload: { users, chats, currentUser },
     });
-  }, []);
+  }, [router]);
 
   // Sync chats across tabs
   useEffect(() => {
@@ -70,12 +94,78 @@ export default function Page() {
     });
   }, [router]);
 
-  // state management for remove group members
+  /* -------------------- Mobile responsive -------------------- */
   useEffect(() => {
-    if (state.chats.length > 0) {
-      localStorage.setItem("chats", JSON.stringify(state.chats));
-    }
-  }, [state.chats]);
+    const check = () => setIsMobile(window.innerWidth > 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  /* -------------------- HELPERS -------------------- */
+  const userMap = useMemo(() => {
+    const map = {};
+    state.users.forEach((u) => (map[u.id] = u));
+    return map;
+  }, [state.users]);
+
+  const activeChat = state.chats.find((c) => c.id === state.activeChatId);
+
+  /* -------------------- CHAT META -------------------- */
+  function getChatMeta(chat, currentUserId) {
+    if (!chat.messages.length) return { lastMessageAt: 0, unreadCount: 0 };
+
+    const last = chat.messages.at(-1);
+    const unreadCount = chat.messages.filter(
+      (m) =>
+        m.sender.id !== currentUserId && !m.readBy?.includes(currentUserId),
+    ).length;
+
+    return { lastMessageAt: last.createdAt, unreadCount };
+  }
+
+  const sidebarItems = useMemo(() => {
+    if (!state.currentUser) return [];
+
+    return state.chats.map((chat) => {
+      const meta = getChatMeta(chat, state.currentUser.id);
+
+      if (chat.type === "group") {
+        return {
+          chatId: chat.id,
+          title: chat.name,
+          ...meta,
+        };
+      }
+
+      const other = chat.members.find((m) => m.id !== state.currentUser.id);
+
+      return {
+        chatId: chat.id,
+        title: userMap[other?.id]?.name || "Unknown",
+        ...meta,
+      };
+    });
+  }, [state.chats, state.currentUser, userMap]);
+
+  // handle open user and group profile
+  const handleProfile = (user) => {
+    setProfileUser(user);
+    setProfileOpen(true);
+  };
+
+  // for open chat
+  function openChat(chatId) {
+    dispatch({ type: "SET_ACTIVE_CHAT", payload: chatId });
+
+    dispatch({
+      type: "MARK_CHAT_AS_READ",
+      payload: {
+        chatId,
+        userId: state.currentUser.id,
+      },
+    });
+  }
 
   // open and creata a 1v1 chat
   function openPrivateChat(user) {
@@ -154,7 +244,6 @@ export default function Page() {
     console.log("user removed", chatId, userId);
   }
 
-  // send message
   function sendMessage() {
     if (!text || !state.activeChatId) return;
 
@@ -162,10 +251,7 @@ export default function Page() {
       type: "SEND_MESSAGE",
       payload: {
         id: uid(),
-        sender: {
-          id: state.currentUser.id,
-          name: state.currentUser.name,
-        },
+        sender: state.currentUser,
         text,
         createdAt: Date.now(),
         readBy: [state.currentUser.id],
@@ -186,133 +272,105 @@ export default function Page() {
     return userMap[message.sender.id]?.name || "Unknown";
   }
 
-  // for recent chat
-  function getChatMeta(chat, currentUserId) {
-    if (!currentUserId || !chat.messages || chat.messages.length === 0) {
-      return {
-        lastMessageAt: 0,
-        unreadCount: 0,
-      };
-    }
-
-    const lastMessage = chat.messages[chat.messages.length - 1];
-
-    const unreadCount = chat.messages.filter(
-      (m) =>
-        m.sender?.id !== currentUserId && !m.readBy?.includes(currentUserId),
-    ).length;
-
-    return {
-      lastMessageAt: lastMessage.createdAt,
-      unreadCount,
-    };
-  }
-
-  // for open chat
-  function openChat(chatId) {
-    dispatch({ type: "SET_ACTIVE_CHAT", payload: chatId });
-
-    dispatch({
-      type: "MARK_CHAT_AS_READ",
-      payload: {
-        chatId,
-        userId: state.currentUser.id,
-      },
-    });
-  }
-
   // logout
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
     router.replace("/");
   };
 
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [profileUser, setProfileUser] = useState(null);
-
-  // handle open user and group profile
-  const handleProfile = (user) => {
-    setProfileUser(user);
-    setProfileOpen(true);
-  };
-
-  // for recent chat data's
-  const userMap = useMemo(() => {
-    const map = {};
-    state.users.forEach((u) => {
-      map[u.id] = u;
-    });
-    return map;
-  }, [state.users]);
-
-  const sidebarItems = useMemo(() => {
-    if (!state.currentUser) return [];
-
-    return state.chats.map((chat) => {
-      const meta = getChatMeta(chat, state.currentUser.id);
-
-      let title = "";
-      let avatarLetter = "";
-
-      if (chat.type === "group") {
-        title = chat.name;
-        avatarLetter = chat.name[0];
-      } else {
-        const otherMember = chat.members.find(
-          (m) => m.id !== state.currentUser.id,
-        );
-
-        const realUser = userMap[otherMember?.id];
-
-        title = realUser?.name || "Unknown";
-        avatarLetter = title[0];
-      }
-
-      return {
-        chatId: chat.id,
-        type: chat.type,
-        title,
-        avatarLetter,
-        ...meta,
-      };
-    });
-  }, [state.chats, state.currentUser, userMap]);
-
-  const activeChat = state.chats.find((c) => c.id === state.activeChatId);
-
-  if (!state.currentUser) return null;
-
+  /* -------------------- UI -------------------- */
   return (
-    <div className="flex flex-row gap-0 h-screen w-full bg-gray-900 text-white ">
-      <Sidebar
-        currentUser={state.currentUser}
-        chats={state.chats}
-        openPrivateChat={openPrivateChat}
-        createGroup={createGroup}
-        setActiveChat={(id) =>
-          dispatch({ type: "SET_ACTIVE_CHAT", payload: id })
-        }
-        onLogout={handleLogout}
+    <div className="h-screen w-full flex bg-gray-900 text-white">
+      {/* LEFT ICON SIDEBAR */}
+      <div className="min-w-12">
+        <SidebarIcon
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+          isMobile={isMobile}
+          onOpen={() => setIsSectionOpen(true)}
+          onLogout={handleLogout}
+        />
+      </div>
+
+      {/* DETAILS PANEL */}
+      <Section
+        activeSection={activeSection}
+        isOpen={isSectionOpen}
         isMobile={isMobile}
-        openProfile={handleProfile}
-        sidebarItems={sidebarItems}
-        openChat={openChat}
-      />
-      <ChatWindow
-        chat={activeChat}
-        currentUser={state.currentUser}
-        text={text}
-        addUsers={addGroupUsers}
-        removeUsers={removeGroupUsers}
-        setText={setText}
-        sendMessage={sendMessage}
-        profileOpen={profileOpen}
-        profileUser={profileUser}
-        setProfileOpen={setProfileOpen}
-        handleProfile={handleProfile}
-        getSenderName={getSenderName}
-        userMap={userMap}
-      />
+        onClose={() => {
+          setIsSectionOpen(false);
+          setActiveSection(null);
+        }}
+      >
+        {/* All chats */}
+        {activeSection === "chats" && (
+          <AllChats
+            sidebarItems={sidebarItems}
+            openChat={openChat}
+            isMobile={isMobile}
+            onClose={() => {
+              setIsSectionOpen(false);
+              setActiveSection(null);
+            }}
+          />
+        )}
+        {/* Only Users */}
+        {activeSection === "users" && (
+          <Users
+            currentUser={state.currentUser}
+            openChat={openChat}
+            openPrivateChat={openPrivateChat}
+            isMobile={isMobile}
+            onClose={() => {
+              setIsSectionOpen(false);
+              setActiveSection(null);
+            }}
+          />
+        )}
+        {/* Only Groups */}
+        {activeSection === "groups" && (
+          <Groups
+            chats={state.chats}
+            chat={activeChat}
+            currentUser={state.currentUser}
+            createGroup={createGroup}
+            setActiveChat={(id) =>
+              dispatch({ type: "SET_ACTIVE_CHAT", payload: id })
+            }
+            isMobile={isMobile}
+            onClose={() => {
+              setIsSectionOpen(false);
+              setActiveSection(null);
+            }}
+          />
+        )}
+      </Section>
+
+      {/* CHAT AREA */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <Profile
+          currentUser={state.currentUser}
+          openProfile={handleProfile}
+          onLogout={handleLogout}
+        />
+        <ChatWindow
+          chat={activeChat}
+          currentUser={state.currentUser}
+          text={text}
+          setText={setText}
+          sendMessage={sendMessage}
+          profileOpen={profileOpen}
+          profileUser={profileUser}
+          setProfileOpen={setProfileOpen}
+          handleProfile={handleProfile}
+          userMap={userMap}
+          addUsers={addGroupUsers}
+          removeUsers={removeGroupUsers}
+          onLogout={handleLogout}
+          getSenderName={getSenderName}
+          setSelectedUser={setSelectedUser}
+        />
+      </div>
     </div>
   );
 }
