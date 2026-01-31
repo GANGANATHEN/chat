@@ -37,7 +37,7 @@ export default function Page() {
   const [selectedUser, setSelectedUser] = useState(null);
   // for message
   const [text, setText] = useState("");
-  // console.log(isSectionOpen);
+  // console.log(selectedUser);
 
   /* -------------------- INIT -------------------- */
   useEffect(() => {
@@ -93,6 +93,13 @@ export default function Page() {
       payload: { users, chats, currentUser },
     });
   }, [router]);
+
+  // state management for remove group members
+  useEffect(() => {
+    if (state.chats.length > 0) {
+      localStorage.setItem("chats", JSON.stringify(state.chats));
+    }
+  }, [state.chats]);
 
   /* -------------------- Mobile responsive -------------------- */
   useEffect(() => {
@@ -197,28 +204,61 @@ export default function Page() {
       });
     }
   }
-
+  console.log(state.currentUser);
   // open and create a group chat
   function createGroup() {
     const name = prompt("Group name?");
     if (!name) return;
 
-    const members = loadLocal("users", []).map((u) => ({
-      id: u.id,
-      name: u.name,
-    }));
+    const members = [
+      { id: state.currentUser.id, name: state.currentUser.name },
+    ];
+    // loadLocal("users", []).map((u) => ({
+    //   id: u.id,
+    //   name: u.name,
+    // }));
+    console.log(members);
 
     dispatch({
       type: "CREATE_GROUP",
       payload: {
         id: uid(),
         type: "group",
+        admin: state.currentUser.id,
         name,
         members,
         messages: [],
       },
     });
   }
+
+  // function createGroup(selectedUsers) {
+  //   const name = prompt("Group name?");
+  //   if (!name) return;
+
+  //   const members = [
+  //     {
+  //       id: state.currentUser.id,
+  //       name: state.currentUser.name,
+  //     },
+  //     ...selectedUsers.map((u) => ({
+  //       id: u.id,
+  //       name: u.name,
+  //     })),
+  //   ];
+
+  //   dispatch({
+  //     type: "CREATE_GROUP",
+  //     payload: {
+  //       id: uid(),
+  //       type: "group",
+  //       admin: state.currentUser.id,
+  //       name,
+  //       members,
+  //       messages: [],
+  //     },
+  //   });
+  // }
 
   // for add a user in group
   function addGroupUsers(chatId, user) {
@@ -369,6 +409,7 @@ export default function Page() {
           onLogout={handleLogout}
           getSenderName={getSenderName}
           setSelectedUser={setSelectedUser}
+          selectedUser={selectedUser}
         />
       </div>
     </div>

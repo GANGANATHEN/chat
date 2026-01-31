@@ -11,6 +11,7 @@ export default function GroupProfile({
   setSelectedUser,
 }) {
   const [addOpen, setAddOpen] = useState(false);
+  // console.log(chat.admin)
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex justify-end">
@@ -51,56 +52,92 @@ export default function GroupProfile({
             {chat.members
               .slice()
               .sort((a, b) => {
-                if (a.id === currentUser.id) return -1; // current user first
-                if (b.id === currentUser.id) return 1; // alp
+                // current user always first
+                if (a.id === currentUser.id) return -1;
+                if (b.id === currentUser.id) return 1;
 
-                const nameCompare = a.name.localeCompare(b.name);
-                if (nameCompare !== 0) return nameCompare;
-
-                return a.id.localeCompare(b.id); // if names same
+                // then sort by name
+                return (a.name || "").localeCompare(b.name || "");
               })
+              .map((m) => {
+                const isAdmin = chat.admin === currentUser.id;
+                const isMe = currentUser.id === m.id;
 
-              .map((m) => (
-                <div
-                  key={m.id}
-                  className="group flex items-center justify-between bg-gray-900 hover:bg-gray-800 transition rounded-lg px-3 py-2"
-                >
-                  {/* Avatar + Name */}
-                  <div className="flex items-center gap-3">
-                    <div
-                      onClick={() => setSelectedUser(m)}
-                      className="cursor-pointer h-9 w-9 rounded-full bg-indigo-500 flex items-center justify-center text-sm font-semibold text-white"
-                    >
-                      {(m.name?.[0] || "?").toUpperCase()}
-                    </div>
-                    <span className="text-sm text-white">
-                      {m.name || "Unknown"}
-                    </span>
-                  </div>
+                const showRemoveButton =
+                  (isAdmin && !isMe) || // admin → remove others
+                  (!isAdmin && isMe); // member → leave self
 
-                  {/* Remove/Leave button */}
-                  <button
-                    onClick={() => onRemoveMember(m.id)}
-                    className="cursor-pointer opacity-0 group-hover:opacity-100 transition flex items-center gap-1 text-red-400 hover:text-red-300"
-                    title={
-                      currentUser.id === m.id ? "Leave group" : "Remove member"
-                    }
+                return (
+                  <div
+                    key={m.id}
+                    className="group flex items-center justify-between
+          bg-gray-900 hover:bg-gray-800 transition
+          rounded-lg px-3 py-2"
                   >
-                    <Minus size={16} />
-                    <span className="text-xs">
-                      {currentUser.id === m.id ? "Leave" : "Remove"}
-                    </span>
-                  </button>
-                </div>
-              ))}
+                    {/* Avatar + Name */}
+                    <div className="flex items-center gap-3">
+                      <div
+                        onClick={() => setSelectedUser(m)}
+                        className="
+                cursor-pointer h-9 w-9 rounded-full
+                bg-indigo-500 flex items-center justify-center
+                text-sm font-semibold text-white
+              "
+                      >
+                        {(m.name?.[0] || "?").toUpperCase()}
+                      </div>
+
+                      <span className="text-sm text-white">
+                        {m.name || "Unknown"}
+                      </span>
+                    </div>
+
+                    {/* Remove / Leave */}
+                    {showRemoveButton && (
+                      <button
+                        onClick={() => {
+                          onRemoveMember(m.id);
+                        }}
+                        className="
+      cursor-pointer opacity-0 group-hover:opacity-100
+      transition flex items-center gap-1
+      text-red-400 hover:text-red-300
+    "
+                        title={isMe ? "Leave group" : "Remove member"}
+                      >
+                        <Minus size={16} />
+                        <span className="text-xs">
+                          {isMe ? "Leave" : "Remove"}
+                        </span>
+                      </button>
+                    )}
+
+                    {/* Admin badge */}
+                    {!showRemoveButton && chat.admin === m.id && (
+                      <span className="text-xs text-lime-300 font-medium">
+                        Admin
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
           </div>
         </div>
 
         {/* FOOTER */}
         <div className="p-4 border-t border-gray-800 bg-gray-950">
           <button
+            disabled={currentUser.id !== chat.admin}
             onClick={() => setAddOpen(true)}
-            className="w-full bg-indigo-600 hover:bg-indigo-500 transition py-3 rounded-xl flex items-center justify-center gap-2 font-medium"
+            className={`
+    w-full py-3 rounded-xl flex items-center justify-center gap-2 font-medium
+    transition
+    ${
+      currentUser.id !== chat.admin
+        ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+        : "bg-indigo-600 hover:bg-indigo-500 text-white"
+    }
+  `}
           >
             <UserPlus size={18} />
             Add member

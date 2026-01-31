@@ -17,10 +17,10 @@ const ProfileModal = ({ user, onClose }) => {
       <div className="relative w-full max-w-sm bg-gray-900 text-white rounded-2xl shadow-xl border border-gray-800">
         
         {/* Header */}
-        <div className="h-24 bg-gradient-to-r from-blue-600 to-purple-600 rounded-t-2xl relative">
+        <div className="h-24 bg-linear-to-r from-blue-600 to-purple-600 rounded-t-2xl relative">
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 text-white/80 hover:text-white"
+            className="cursor-pointer absolute top-3 right-3 text-white/80 hover:text-white"
           >
             <X size={20} />
           </button>
@@ -45,6 +45,7 @@ const ProfileModal = ({ user, onClose }) => {
           <p className="text-sm text-gray-400">
             {user.email || "No email provided"}
           </p>
+          <p>{user.id}</p>
 
           {/* About */}
           {user.about && (

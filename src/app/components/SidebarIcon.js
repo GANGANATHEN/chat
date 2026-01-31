@@ -31,7 +31,7 @@ export default function Sidenav({
     }
   }, [isMobile, setOpen]);
 
-  // console.log(isMobile);
+  // console.log(isClose);
 
   return (
     <div
@@ -86,7 +86,7 @@ export default function Sidenav({
                         ? "bg-blue-600 text-white"
                         : "text-gray-400 hover:bg-gray-800 hover:text-white"
                     }
-                    ${!isClose ? "items-center px-2" : "justify-center"}
+                    ${!isClose ? "items-center px-2" : ""}
                   `}
                   >
                     {/* ICON */}

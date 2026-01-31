@@ -10,6 +10,7 @@ import {
   Users,
   User,
 } from "lucide-react";
+import ProfileModal from "./ProfilePopub";
 
 export default function ChatWindow({
   chat,
@@ -26,7 +27,8 @@ export default function ChatWindow({
   getSenderName,
   userMap,
   setSelectedUser,
-  onLogout
+  selectedUser,
+  onLogout,
 }) {
   // ref for new messages
   const bottomRef = useRef(null);
@@ -67,7 +69,9 @@ export default function ChatWindow({
               )}
             </button>
 
-            {chat?.type === "group" ? `${chat.name} group` : otherUser?.name || "Chat"}
+            {chat?.type === "group"
+              ? `${chat.name} group`
+              : otherUser?.name || "Chat"}
           </div>
         )}
 
@@ -80,6 +84,7 @@ export default function ChatWindow({
                 onAddMember={(userId) => addUsers(profileUser.id, userId)}
                 onRemoveMember={(userId) => removeUsers(profileUser.id, userId)}
                 currentUser={currentUser}
+                setSelectedUser={setSelectedUser}
               />
             ) : (
               <UserProfile
@@ -97,6 +102,10 @@ export default function ChatWindow({
             )}
           </>
         )}
+        <ProfileModal
+          user={selectedUser}
+          onClose={() => setSelectedUser(null)}
+        />
       </div>
 
       {!chat ? (

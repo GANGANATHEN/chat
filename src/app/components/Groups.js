@@ -25,16 +25,11 @@ const Groups = ({
       <div className="sidebar-scroll-area custom-scrollbar space-y-2 px-1 pb-15">
         {chats
           .filter((c) => {
-
             return (
               c.type?.toLowerCase() === "group" &&
               currentUser &&
-              c.members?.some(
-                (m) =>
-                  m === currentUser.id ||
-                  m.id === currentUser.id ||
-                  m.userId === currentUser.id,
-              )
+              Array.isArray(c.members) &&
+              c.members.some((m) => m.id === currentUser.id)
             );
           })
           .slice()

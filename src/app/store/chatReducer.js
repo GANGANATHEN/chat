@@ -62,17 +62,32 @@ export function chatReducer(state, action) {
       };
     }
 
+    // case "REMOVE_GROUP_MEMBER": {
+    //   return {
+    //     ...state,
+    //     chats: state.chats.map((chat) => {
+    //       if (chat.id !== action.payload.chatId) return chat;
+
+    //       return {
+    //         ...chat,
+    //         members: chat.members.filter((m) => m.id !== action.payload.userId),
+    //       };
+    //     }),
+    //   };
+    // }
     case "REMOVE_GROUP_MEMBER": {
+      const { chatId, userId } = action.payload;
+
       return {
         ...state,
-        chats: state.chats.map((chat) => {
-          if (chat.id !== action.payload.chatId) return chat;
-
-          return {
-            ...chat,
-            members: chat.members.filter((m) => m.id !== action.payload.userId),
-          };
-        }),
+        chats: state.chats.map((chat) =>
+          chat.id === chatId
+            ? {
+                ...chat,
+                members: chat.members.filter((m) => m.id !== userId),
+              }
+            : chat,
+        ),
       };
     }
 
