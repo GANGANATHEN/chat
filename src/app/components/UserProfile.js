@@ -1,8 +1,14 @@
-import { X, Pencil, Camera, Check } from "lucide-react";
+import { X, Pencil, Camera, Check, LogOut } from "lucide-react";
 import { useState } from "react";
 
-export default function UserProfile({ user, currentUser, onClose, onSave, onLogout }) {
-  const isMe = currentUser.id === user.id;
+export default function UserProfile({
+  user,
+  currentUser,
+  onClose,
+  onSave,
+  onLogout,
+}) {
+  const isMe = currentUser?.id === user?.id;
 
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user.name);
@@ -131,11 +137,36 @@ export default function UserProfile({ user, currentUser, onClose, onSave, onLogo
 
         {/* DELETE ACCOUNT */}
         {isMe && (
-          <div className="mt-auto px-5 py-4 border-t border-gray-800">
+          <div className="mt-auto px-4 py-3 border-t border-gray-800 bg-gray-950/40">
+            {/* Logout */}
+            <button
+              onClick={onLogout}
+              className="
+        w-full flex items-center gap-3
+        px-3 py-2 rounded-md
+        text-sm text-gray-300
+        hover:bg-gray-800/70 hover:text-white
+        transition
+      "
+            >
+              <LogOut className="size-5 opacity-80" />
+              <span>Logout</span>
+            </button>
+
+            {/* Delete Account */}
             <button
               onClick={handleDelete}
-              className="w-full py-2.5 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white transition font-medium">
-              Delete Account
+              className="
+        w-full mt-2
+        px-3 py-2 rounded-md
+        text-sm font-medium
+        text-red-400
+        hover:text-red-300
+        hover:bg-red-500/10
+        transition
+      "
+            >
+              Delete account
             </button>
           </div>
         )}

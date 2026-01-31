@@ -10,6 +10,9 @@ import { useRouter } from "next/navigation";
 // data
 import { sidebarSections } from "../data/data";
 import Profile from "../components/Profile";
+import AllChats from "../components/AllChats";
+import Users from "../components/Users";
+import Groups from "../components/Groups";
 
 export default function Page() {
   const router = useRouter();
@@ -113,11 +116,16 @@ export default function Page() {
     setProfileOpen(true);
   };
 
+  // for open chat
   function openChat(chatId) {
     dispatch({ type: "SET_ACTIVE_CHAT", payload: chatId });
+
     dispatch({
       type: "MARK_CHAT_AS_READ",
-      payload: { chatId, userId: state.currentUser.id },
+      payload: {
+        chatId,
+        userId: state.currentUser.id,
+      },
     });
   }
 
@@ -161,6 +169,17 @@ export default function Page() {
     setText("");
   }
 
+  // for logic issue in user profile
+  function getSenderName(message, currentUser, userMap) {
+    if (message.sender.id === currentUser.id) {
+      return "You";
+    }
+
+    console.log("Sender debug:", message.sender.name, message.sender.id);
+
+    return userMap[message.sender.id]?.name || "Unknown";
+  }
+
   // logout
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
@@ -177,6 +196,7 @@ export default function Page() {
           setActiveSection={setActiveSection}
           isMobile={isMobile}
           onOpen={() => setIsSectionOpen(true)}
+          onLogout={handleLogout}
         />
       </div>
 
@@ -190,9 +210,19 @@ export default function Page() {
           setActiveSection(null);
         }}
       >
-        {activeSection === "chats" && <Item />}
-        {activeSection === "users" && <Item />}
-        {activeSection === "groups" && <Item />}
+        {activeSection === "chats" && (
+          <AllChats
+            sidebarItems={sidebarItems}
+            openChat={openChat}
+            isMobile={isMobile}
+            onClose={() => {
+              setIsSectionOpen(false);
+              setActiveSection(null);
+            }}
+          />
+        )}
+        {activeSection === "users" && <Users />}
+        {activeSection === "groups" && <Groups />}
       </Section>
 
       {/* CHAT AREA */}
@@ -212,6 +242,8 @@ export default function Page() {
           profileUser={profileUser}
           setProfileOpen={setProfileOpen}
           userMap={userMap}
+          onLogout={handleLogout}
+          getSenderName={getSenderName}
         />
       </div>
     </div>

@@ -20,6 +20,7 @@ export default function Sidenav({
   setActiveSection,
   onOpen,
   isMobile,
+  onLogout,
 }) {
   const { setOpen } = useSidebar();
   const [isClose, setIsClose] = useState(false);
@@ -115,11 +116,12 @@ export default function Sidenav({
         {/* FOOTER */}
         <SidebarFooter className="border-t border-gray-700 bg-gray-900">
           <SidebarMenuButton
+            onClick={onLogout}
             className={`
             flex items-center
             text-red-500 hover:text-red-400
             hover:bg-gray-800
-            rounded-lg px-1.5 py-2
+            rounded-lg px-1.5 py-2 cursor-pointer
             ${!isClose ? "px-3" : ""}
           `}
           >

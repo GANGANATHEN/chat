@@ -24,7 +24,8 @@ export default function ChatWindow({
   setProfileOpen,
   handleProfile,
   getSenderName,
-  userMap
+  userMap,
+  onLogout
 }) {
   // ref for new messages
   const bottomRef = useRef(null);
@@ -86,6 +87,7 @@ export default function ChatWindow({
                 user={profileUser}
                 currentUser={currentUser}
                 onClose={() => setProfileOpen(false)}
+                onLogout={onLogout}
                 onSave={(newName) =>
                   dispatch({
                     type: "UPDATE_USER_NAME",
