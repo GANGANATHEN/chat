@@ -9,6 +9,7 @@ import Item from "../components/Item";
 import { useRouter } from "next/navigation";
 // data
 import { sidebarSections } from "../data/data";
+import Profile from "../components/Profile";
 
 export default function Page() {
   const router = useRouter();
@@ -24,8 +25,16 @@ export default function Page() {
   const [state, dispatch] = useReducer(chatReducer, initialState);
 
   /* -------------------- UI STATE -------------------- */
-  const [activeSection, setActiveSection] = useState("chats");
+  const [isMobile, setIsMobile] = useState(false);
+  // for chat page open
+  const [activeSection, setActiveSection] = useState(null);
+  const [isSectionOpen, setIsSectionOpen] = useState(false);
+  // for user and group profile open
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileUser, setProfileUser] = useState(null);
+  // for message
   const [text, setText] = useState("");
+  console.log(isSectionOpen);
 
   /* -------------------- INIT -------------------- */
   useEffect(() => {
@@ -43,6 +52,14 @@ export default function Page() {
       payload: { users, chats, currentUser },
     });
   }, [router]);
+
+  /* -------------------- Mobile responsive -------------------- */
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth > 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   /* -------------------- HELPERS -------------------- */
   const userMap = useMemo(() => {
@@ -90,7 +107,12 @@ export default function Page() {
     });
   }, [state.chats, state.currentUser, userMap]);
 
-  /* -------------------- ACTIONS -------------------- */
+  // handle open user and group profile
+  const handleProfile = (user) => {
+    setProfileUser(user);
+    setProfileOpen(true);
+  };
+
   function openChat(chatId) {
     dispatch({ type: "SET_ACTIVE_CHAT", payload: chatId });
     dispatch({
@@ -139,70 +161,56 @@ export default function Page() {
     setText("");
   }
 
+  // logout
+  const handleLogout = () => {
+    dispatch({ type: "LOGOUT" });
+    router.replace("/");
+  };
+
   /* -------------------- UI -------------------- */
   return (
     <div className="h-screen w-full flex bg-gray-900 text-white">
       {/* LEFT ICON SIDEBAR */}
-      <SidebarIcon />
-
-      {/* DETAILS PANEL */}
-      <div className="w-[25%] border-r border-gray-700 p-3 overflow-y-auto">
-        {activeSection === "chats" && (
-          <Section title="All Chats">
-            {sidebarItems
-              .sort((a, b) => b.lastMessageAt - a.lastMessageAt)
-              .map((item) => (
-                <Item
-                  key={item.chatId}
-                  label={item.title}
-                  unread={item.unreadCount}
-                  onClick={() => openChat(item.chatId)}
-                />
-              ))}
-          </Section>
-        )}
-
-        {activeSection === "users" && (
-          <Section title="Users">
-            {state.users
-              .filter((u) => u.id !== state.currentUser.id)
-              .map((u) => (
-                <Item
-                  key={u.id}
-                  label={u.name}
-                  onClick={() => openPrivateChat(u)}
-                />
-              ))}
-          </Section>
-        )}
-
-        {activeSection === "groups" && (
-          <Section title="Groups">
-            {state.chats
-              .filter(
-                (c) =>
-                  c.type === "group" &&
-                  c.members.some((m) => m.id === state.currentUser.id),
-              )
-              .map((g) => (
-                <Item
-                  key={g.id}
-                  label={g.name}
-                  onClick={() => openChat(g.id)}
-                />
-              ))}
-          </Section>
-        )}
+      <div className="min-w-12">
+        <SidebarIcon
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+          isMobile={isMobile}
+          onOpen={() => setIsSectionOpen(true)}
+        />
       </div>
 
-      {/* CHAT AREA (OLD COMPONENT 그대로) */}
-      <div className="w-[60%]">
+      {/* DETAILS PANEL */}
+      <Section
+        activeSection={activeSection}
+        isOpen={isSectionOpen}
+        isMobile={isMobile}
+        onClose={() => {
+          setIsSectionOpen(false);
+          setActiveSection(null);
+        }}
+      >
+        {activeSection === "chats" && <Item />}
+        {activeSection === "users" && <Item />}
+        {activeSection === "groups" && <Item />}
+      </Section>
+
+      {/* CHAT AREA */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <Profile
+          currentUser={state.currentUser}
+          openProfile={handleProfile}
+          onLogout={handleLogout}
+        />
         <ChatWindow
           chat={activeChat}
           currentUser={state.currentUser}
           text={text}
           setText={setText}
           sendMessage={sendMessage}
+          profileOpen={profileOpen}
+          profileUser={profileUser}
+          setProfileOpen={setProfileOpen}
           userMap={userMap}
         />
       </div>

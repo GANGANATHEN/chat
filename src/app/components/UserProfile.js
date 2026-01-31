@@ -1,7 +1,7 @@
 import { X, Pencil, Camera, Check } from "lucide-react";
 import { useState } from "react";
 
-export default function UserProfile({ user, currentUser, onClose, onSave }) {
+export default function UserProfile({ user, currentUser, onClose, onSave, onLogout }) {
   const isMe = currentUser.id === user.id;
 
   const [editing, setEditing] = useState(false);
@@ -57,7 +57,7 @@ export default function UserProfile({ user, currentUser, onClose, onSave }) {
         <div className="relative px-5 py-4 border-b border-gray-800">
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 text-gray-400 hover:text-white"
+            className="absolute right-4 top-4 text-gray-400 hover:text-white cursor-pointer"
           >
             <X />
           </button>
@@ -95,7 +95,7 @@ export default function UserProfile({ user, currentUser, onClose, onSave }) {
                 />
                 <button
                   onClick={handleSave}
-                  className="text-green-400 hover:text-green-500"
+                  className="text-green-400 hover:text-green-500 cursor-pointer"
                 >
                   <Check size={18} />
                 </button>
@@ -107,7 +107,7 @@ export default function UserProfile({ user, currentUser, onClose, onSave }) {
                 {isMe && (
                   <button
                     onClick={() => setEditing(true)}
-                    className="text-gray-400 hover:text-white"
+                    className="text-gray-400 hover:text-white cursor-pointer"
                   >
                     <Pencil size={16} />
                   </button>

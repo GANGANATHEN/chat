@@ -31,7 +31,7 @@ export default function Sidenav({
 }) {
   const users = loadLocal("users", []);
   const { toggleSidebar, isOpen } = useSidebar();
-
+  
   const sortedSidebarItems = useMemo(() => {
     return [...sidebarItems].sort((a, b) => {
       // both have messages → recent first
