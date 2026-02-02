@@ -131,28 +131,31 @@ export default function Page() {
     return { lastMessageAt: last.createdAt, unreadCount };
   }
 
+  // for allchats -> new chat
   const sidebarItems = useMemo(() => {
     if (!state.currentUser) return [];
 
-    return state.chats.map((chat) => {
-      const meta = getChatMeta(chat, state.currentUser.id);
+    return state.chats
+      .filter((chat) => chat.members.some((m) => m.id === state.currentUser.id))
+      .map((chat) => {
+        const meta = getChatMeta(chat, state.currentUser.id);
 
-      if (chat.type === "group") {
+        if (chat.type === "group") {
+          return {
+            chatId: chat.id,
+            title: chat.name,
+            ...meta,
+          };
+        }
+
+        const other = chat.members.find((m) => m.id !== state.currentUser.id);
+
         return {
           chatId: chat.id,
-          title: chat.name,
+          title: userMap[other?.id]?.name || "Unknown",
           ...meta,
         };
-      }
-
-      const other = chat.members.find((m) => m.id !== state.currentUser.id);
-
-      return {
-        chatId: chat.id,
-        title: userMap[other?.id]?.name || "Unknown",
-        ...meta,
-      };
-    });
+      });
   }, [state.chats, state.currentUser, userMap]);
 
   // handle open user and group profile
@@ -204,7 +207,8 @@ export default function Page() {
       });
     }
   }
-  console.log(state.currentUser);
+  // console.log(state.currentUser);
+
   // open and create a group chat
   function createGroup() {
     const name = prompt("Group name?");
@@ -231,34 +235,6 @@ export default function Page() {
       },
     });
   }
-
-  // function createGroup(selectedUsers) {
-  //   const name = prompt("Group name?");
-  //   if (!name) return;
-
-  //   const members = [
-  //     {
-  //       id: state.currentUser.id,
-  //       name: state.currentUser.name,
-  //     },
-  //     ...selectedUsers.map((u) => ({
-  //       id: u.id,
-  //       name: u.name,
-  //     })),
-  //   ];
-
-  //   dispatch({
-  //     type: "CREATE_GROUP",
-  //     payload: {
-  //       id: uid(),
-  //       type: "group",
-  //       admin: state.currentUser.id,
-  //       name,
-  //       members,
-  //       messages: [],
-  //     },
-  //   });
-  // }
 
   // for add a user in group
   function addGroupUsers(chatId, user) {
@@ -346,6 +322,7 @@ export default function Page() {
         {activeSection === "chats" && (
           <AllChats
             sidebarItems={sidebarItems}
+            currentUser={state.currentUser}
             openChat={openChat}
             isMobile={isMobile}
             onClose={() => {

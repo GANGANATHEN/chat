@@ -31,7 +31,7 @@ export default function Sidenav({
     }
   }, [isMobile, setOpen]);
 
-  // console.log(isClose);
+  console.log(isMobile);
 
   return (
     <div
@@ -86,7 +86,7 @@ export default function Sidenav({
                         ? "bg-blue-600 text-white"
                         : "text-gray-400 hover:bg-gray-800 hover:text-white"
                     }
-                    ${!isClose ? "items-center px-2" : ""}
+                    ${isClose ? "items-center px-2" : ""}
                   `}
                   >
                     {/* ICON */}
@@ -101,7 +101,7 @@ export default function Sidenav({
                     />
 
                     {/* LABEL */}
-                    {!isClose && (
+                    {isClose && (
                       <span className="text-sm md:text-sm font-medium truncate text-white">
                         {label}
                       </span>
@@ -122,11 +122,11 @@ export default function Sidenav({
             text-red-500 hover:text-red-400
             hover:bg-gray-800
             rounded-lg px-1.5 py-2 cursor-pointer
-            ${!isClose ? "px-3" : ""}
+            ${isClose ? "px-3" : ""}
           `}
           >
             <LogOut className="size-5 md:size-5 lg:size-6" />
-            {!isClose && <span className="text-sm">Logout</span>}
+            {isClose && <span className="text-sm">Logout</span>}
           </SidebarMenuButton>
         </SidebarFooter>
       </Sidebar>

@@ -1,24 +1,47 @@
-import React, { useMemo } from "react";
+import React, { useState, useMemo } from "react";
+import { Search } from "lucide-react";
 
-const AllChats = ({ sidebarItems, openChat, isMobile, onClose }) => {
+const AllChats = ({
+  sidebarItems,
+  currentUser,
+  openChat,
+  isMobile,
+  onClose,
+}) => {
+  // const users = loadLocal("users", []);
+  const [query, setQuery] = useState("");
+
   const sortedSidebarItems = useMemo(() => {
-    return [...sidebarItems].sort((a, b) => {
-      // both have messages → recent first
-      if (a.lastMessageAt && b.lastMessageAt) {
-        return b.lastMessageAt - a.lastMessageAt;
-      }
-
-      // only one has messages
-      if (a.lastMessageAt && !b.lastMessageAt) return -1;
-      if (!a.lastMessageAt && b.lastMessageAt) return 1;
-
-      // no messages → alphabetical
-      return a.title.localeCompare(b.title);
-    });
-  }, [sidebarItems]);
+    return sidebarItems
+      .filter((item) => {
+        if (query && !item.title.toLowerCase().includes(query.toLowerCase()))
+          return false;
+        if (item.isMuted) return false;
+        return true;
+      })
+      .slice()
+      .sort((a, b) => {
+        if (a.lastMessageAt && b.lastMessageAt) {
+          return b.lastMessageAt - a.lastMessageAt;
+        }
+        if (a.lastMessageAt && !b.lastMessageAt) return -1;
+        if (!a.lastMessageAt && b.lastMessageAt) return 1;
+        return a.title.localeCompare(b.title);
+      });
+  }, [sidebarItems, query]);
 
   return (
     <div className={`custom-scrollbar sidebar-scroll-area pb-15`}>
+      {/* SEARCH */}
+      <div className="relative mb-3">
+        <Search size={16} className="absolute left-3 top-2.5 text-gray-400" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search users..."
+          className="w-full bg-gray-800 pl-9 pr-3 py-2 rounded text-sm outline-none"
+        />
+      </div>
       <div className="px-3">
         {sortedSidebarItems.length > 0 ? (
           sortedSidebarItems.map((item) => (

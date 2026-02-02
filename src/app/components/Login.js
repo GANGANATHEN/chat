@@ -17,6 +17,7 @@ export default function Login({ name, pass, setName, setPass, onLogin }) {
           <input
             className="w-full bg-gray-900 border border-gray-700 px-3 py-2 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
             placeholder="Your name"
+            autoComplete="username"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
@@ -25,6 +26,7 @@ export default function Login({ name, pass, setName, setPass, onLogin }) {
             className="w-full bg-gray-900 border border-gray-700 px-3 py-2 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
             placeholder="Your password"
             type="password"
+            autoComplete="current-password"
             value={pass}
             onChange={(e) => setPass(e.target.value)}
           />
