@@ -357,6 +357,7 @@ export default function Page() {
         {/* Only Users */}
         {activeSection === "users" && (
           <Users
+            chat={activeChat}
             currentUser={state.currentUser}
             openChat={openChat}
             openPrivateChat={openPrivateChat}

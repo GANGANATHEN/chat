@@ -44,7 +44,7 @@ const Groups = ({
                 if (!isMobile && onClose) onClose();
               }}
               className="
-        flex items-center gap-3 py-3 px-2 rounded-lg
+        flex items-center gap-3 py-1.5 px-2 rounded-lg
         text-gray-200 hover:bg-gray-800 transition
       "
             >

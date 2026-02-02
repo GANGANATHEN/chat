@@ -1,14 +1,37 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
+import { Search } from "lucide-react";
 import { loadLocal } from "../utils/storage";
 
-const Users = ({ currentUser, openPrivateChat, onClose, isMobile }) => {
+const Users = ({ currentUser, openPrivateChat, chat, onClose, isMobile }) => {
   const users = loadLocal("users", []);
-  const otherUsers = users?.filter((u) => u.id !== currentUser.id);
+  const [query, setQuery] = useState("");
+
+  const filteredUsers = useMemo(() => {
+    return users
+      .filter(
+        (u) =>
+          u.id !== currentUser.id &&
+          u.name.toLowerCase().includes(query.toLowerCase()),
+      )
+      .map((u) => ({ id: u.id, name: u.name }));
+  }, [query, users, currentUser.id]);
+
   return (
-    <div className={`sidebar-scroll-area custom-scrollbar pb-15`}>
+    <div className={`sidebar-scroll-area custom-scrollbar pb-15 space-y-2`}>
+      {/* SEARCH */}
+      <div className="relative mb-3">
+        <Search size={16} className="absolute left-3 top-2.5 text-gray-400" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search users..."
+          className="w-full bg-gray-800 pl-9 pr-3 py-2 rounded text-sm outline-none"
+        />
+      </div>
+
       <div className="px-3">
-        {otherUsers && otherUsers.length > 0 ? (
-          otherUsers
+        {filteredUsers.length > 0 ? (
+          filteredUsers
             .slice()
             .sort((a, b) => {
               // sort alphabetically by name
@@ -26,7 +49,7 @@ const Users = ({ currentUser, openPrivateChat, onClose, isMobile }) => {
                     if (!isMobile && onClose) onClose();
                   }}
                   className="
-                      flex items-center gap-3 py-6 rounded-lg
+                      flex items-center gap-3 py-1.5 px-2 rounded-lg
                       text-gray-200
                       hover:bg-gray-800
                       hover:text-white/40

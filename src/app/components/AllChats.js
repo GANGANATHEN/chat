@@ -28,7 +28,7 @@ const AllChats = ({ sidebarItems, openChat, isMobile, onClose }) => {
                   openChat(item.chatId);
                   if (!isMobile && onClose) onClose();
                 }}
-                className="flex items-center gap-3 py-6 rounded-lg
+                className="flex items-center gap-3 py-1.5 px-2 rounded-lg
                      text-gray-200 hover:bg-gray-800 transition"
               >
                 <div
