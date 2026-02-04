@@ -12,12 +12,20 @@ export default function GroupProfile({
   userMap,
 }) {
   const [addOpen, setAddOpen] = useState(false);
+  const [removedUser, setRemovedUser] = useState(null);
   // console.log(chat.admin)
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex justify-end">
+    <div
+      className="fixed inset-0 z-50 bg-black/50 flex justify-end"
+      onClick={onClose}
+    >
       {/* DRAWER */}
-      <div className="w-105 max-w-full bg-gray-950 h-full flex flex-col shadow-2xl animate-slideIn">
+      <div
+        className="w-105 max-w-full bg-gray-950 h-full flex flex-col shadow-2xl 
+      animate-slideIn"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* HEADER */}
         <div className="relative p-6 border-b border-gray-800">
           <button
@@ -96,6 +104,10 @@ export default function GroupProfile({
                       <button
                         onClick={() => {
                           onRemoveMember(m.id);
+                          setRemovedUser(m.name);
+                          setTimeout(() => {
+                            setRemovedUser(null);
+                          }, 2000);
                         }}
                         className="cursor-pointer opacity-0 group-hover:opacity-100 
                         transition flex items-center gap-1 text-red-400 hover:text-red-300"
@@ -119,6 +131,12 @@ export default function GroupProfile({
               })}
           </div>
         </div>
+
+        {removedUser && (
+          <p className="font-medium text-red-500 text-center text-sm mb-3">
+            {removedUser} was removed
+          </p>
+        )}
 
         {/* FOOTER */}
         <div className="p-4 border-t border-gray-800 bg-gray-950">

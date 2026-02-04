@@ -11,6 +11,7 @@ import Profile from "../components/Profile";
 import AllChats from "../components/AllChats";
 import Users from "../components/Users";
 import Groups from "../components/Groups";
+import GroupNamePrompt from "../components/GroupNamePrompt";
 
 export default function Page() {
   const router = useRouter();
@@ -35,6 +36,8 @@ export default function Page() {
   const [profileUser, setProfileUser] = useState(null);
   // for group user profile open
   const [selectedUser, setSelectedUser] = useState(null);
+  // for create group prompt
+  const [showPrompt, setShowPrompt] = useState(false);
   // for message
   const [text, setText] = useState("");
   // console.log(selectedUser);
@@ -203,7 +206,10 @@ export default function Page() {
 
   // open and create a group chat
   function createGroup() {
-    const name = prompt("Group name?");
+    setShowPrompt(true);
+  }
+
+  function handleCreateGroup(name) {
     if (!name) return;
 
     const members = [
@@ -226,6 +232,8 @@ export default function Page() {
         messages: [],
       },
     });
+
+    setShowPrompt(false);
   }
 
   // for add a user in group
@@ -362,6 +370,12 @@ export default function Page() {
               setIsSectionOpen(false);
               setActiveSection(null);
             }}
+          />
+        )}
+        {showPrompt && (
+          <GroupNamePrompt
+            onConfirm={handleCreateGroup}
+            onCancel={() => setShowPrompt(false)}
           />
         )}
       </Section>

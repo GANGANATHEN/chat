@@ -4,6 +4,7 @@ import { loadLocal } from "../utils/storage";
 
 export default function AddMemberDrawer({ chat, onAdd, onClose }) {
   const allUsers = loadLocal("users", []);
+  const [addedUser, setAddedUser] = useState(null);
   const [query, setQuery] = useState("");
 
   const filteredUsers = useMemo(() => {
@@ -47,7 +48,9 @@ export default function AddMemberDrawer({ chat, onAdd, onClose }) {
           )}
 
           {filteredUsers.map((u) => {
-            {/* console.log(u); */}
+            {
+              /* console.log(u); */
+            }
             return (
               <div
                 key={u.id}
@@ -61,12 +64,20 @@ export default function AddMemberDrawer({ chat, onAdd, onClose }) {
                 </div>
 
                 <button
-                  onClick={() =>
+                  onClick={() => {
                     onAdd({
                       id: u.id,
                       name: u.name,
-                    })
-                  }
+                    });
+
+                    // show message
+                    setAddedUser(u.name);
+
+                    // auto hide after 2s
+                    setTimeout(() => {
+                      setAddedUser(null);
+                    }, 2000);
+                  }}
                   className="text-indigo-400 hover:text-indigo-300"
                   title="Add user"
                 >
@@ -76,6 +87,12 @@ export default function AddMemberDrawer({ chat, onAdd, onClose }) {
             );
           })}
         </div>
+
+        {addedUser && (
+          <p className="font-medium mt-3 text-sm text-lime-300 text-center">
+            {addedUser} was added
+          </p>
+        )}
       </div>
     </div>
   );
