@@ -25,6 +25,7 @@ export default function ChatWindow({
   setProfileOpen,
   handleProfile,
   getSenderName,
+  getChatTitle,
   userMap,
   setSelectedUser,
   selectedUser,
@@ -71,7 +72,7 @@ export default function ChatWindow({
 
             {chat?.type === "group"
               ? `${chat.name} group`
-              : otherUser?.name || "Chat"}
+              : getChatTitle(chat, currentUser.id, userMap)}
           </div>
         )}
 
@@ -80,6 +81,7 @@ export default function ChatWindow({
             {profileUser.type === "group" ? (
               <GroupProfile
                 chat={profileUser}
+                userMap={userMap}
                 onClose={() => setProfileOpen(false)}
                 onAddMember={(userId) => addUsers(profileUser.id, userId)}
                 onRemoveMember={(userId) => removeUsers(profileUser.id, userId)}
@@ -104,6 +106,7 @@ export default function ChatWindow({
         )}
         <ProfileModal
           user={selectedUser}
+          userMap={userMap}
           onClose={() => setSelectedUser(null)}
         />
       </div>
@@ -129,14 +132,13 @@ export default function ChatWindow({
                 >
                   <div className="flex gap-x-4 justify-between items-center mb-1">
                     <span className="text-xs font-semibold text-gray-300">
-                      {m.sender.id === currentUser.id ? "You" : m.sender.name}
+                      {m.sender.id === currentUser.id
+                        ? "You"
+                        : getSenderName(m, currentUser, userMap)}
                     </span>
                     <span className="text-[10px] text-gray-400">
                       {new Date(m.createdAt).toLocaleTimeString()}
                     </span>
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    {getSenderName(m, currentUser, userMap)}
                   </div>
 
                   {m.text}

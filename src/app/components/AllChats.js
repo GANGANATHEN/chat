@@ -38,7 +38,7 @@ const AllChats = ({
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search users..."
+          placeholder="Search Chats..."
           className="w-full bg-gray-800 pl-9 pr-3 py-2 rounded text-sm outline-none"
         />
       </div>

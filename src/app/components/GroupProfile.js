@@ -9,6 +9,7 @@ export default function GroupProfile({
   onAddMember,
   currentUser,
   setSelectedUser,
+  userMap,
 }) {
   const [addOpen, setAddOpen] = useState(false);
   // console.log(chat.admin)
@@ -57,38 +58,36 @@ export default function GroupProfile({
                 if (b.id === currentUser.id) return 1;
 
                 // then sort by name
-                return (a.name || "").localeCompare(b.name || "");
+                return (userMap[a?.id]?.name || "").localeCompare(
+                  userMap[b?.id]?.name || "",
+                );
               })
               .map((m) => {
                 const isAdmin = chat.admin === currentUser.id;
                 const isMe = currentUser.id === m.id;
 
                 const showRemoveButton =
-                  (isAdmin && !isMe) || // admin → remove others
-                  (!isAdmin && isMe); // member → leave self
+                  (isAdmin && !isMe) || // admin --> remove others
+                  (!isAdmin && isMe); // member --> leave self
 
                 return (
                   <div
                     key={m.id}
-                    className="group flex items-center justify-between
-          bg-gray-900 hover:bg-gray-800 transition
-          rounded-lg px-3 py-2"
+                    className="group flex items-center justify-between 
+                    bg-gray-900 hover:bg-gray-800 transition rounded-lg px-3 py-2"
                   >
                     {/* Avatar + Name */}
                     <div className="flex items-center gap-3">
                       <div
                         onClick={() => setSelectedUser(m)}
-                        className="
-                cursor-pointer h-9 w-9 rounded-full
-                bg-indigo-500 flex items-center justify-center
-                text-sm font-semibold text-white
-              "
+                        className="cursor-pointer h-9 w-9 rounded-full bg-indigo-500 flex 
+                        items-center justify-center text-sm font-semibold text-white"
                       >
-                        {(m.name?.[0] || "?").toUpperCase()}
+                        {(userMap[m?.id]?.name?.[0] || "?").toUpperCase()}
                       </div>
 
                       <span className="text-sm text-white">
-                        {m.name || "Unknown"}
+                        {userMap[m?.id]?.name || "Unknown"}
                       </span>
                     </div>
 
@@ -98,11 +97,8 @@ export default function GroupProfile({
                         onClick={() => {
                           onRemoveMember(m.id);
                         }}
-                        className="
-      cursor-pointer opacity-0 group-hover:opacity-100
-      transition flex items-center gap-1
-      text-red-400 hover:text-red-300
-    "
+                        className="cursor-pointer opacity-0 group-hover:opacity-100 
+                        transition flex items-center gap-1 text-red-400 hover:text-red-300"
                         title={isMe ? "Leave group" : "Remove member"}
                       >
                         <Minus size={16} />
@@ -129,15 +125,12 @@ export default function GroupProfile({
           <button
             disabled={currentUser.id !== chat.admin}
             onClick={() => setAddOpen(true)}
-            className={`
-    w-full py-3 rounded-xl flex items-center justify-center gap-2 font-medium
-    transition
-    ${
-      currentUser.id !== chat.admin
-        ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-        : "bg-indigo-600 hover:bg-indigo-500 text-white"
-    }
-  `}
+            className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 
+            font-medium transition ${
+              currentUser.id !== chat.admin
+                ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                : "bg-indigo-600 hover:bg-indigo-500 text-white"
+            }`}
           >
             <UserPlus size={18} />
             Add member

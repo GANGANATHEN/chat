@@ -58,10 +58,10 @@ export default function Page() {
 
   // Sync chats across tabs
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth > 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
+    const handleResize = () => setIsMobile(window.innerWidth >= 768);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
@@ -100,14 +100,6 @@ export default function Page() {
       localStorage.setItem("chats", JSON.stringify(state.chats));
     }
   }, [state.chats]);
-
-  /* -------------------- Mobile responsive -------------------- */
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth > 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
 
   /* -------------------- HELPERS -------------------- */
   const userMap = useMemo(() => {
@@ -267,7 +259,10 @@ export default function Page() {
       type: "SEND_MESSAGE",
       payload: {
         id: uid(),
-        sender: state.currentUser,
+        sender: {
+          id: state.currentUser.id,
+          name: state.currentUser.name,
+        },
         text,
         createdAt: Date.now(),
         readBy: [state.currentUser.id],
@@ -286,6 +281,13 @@ export default function Page() {
     console.log("Sender debug:", message.sender.name, message.sender.id);
 
     return userMap[message.sender.id]?.name || "Unknown";
+  }
+
+  function getChatTitle(chat, currentUserId, userMap) {
+    if (!chat) return "Chat";
+    if (chat.type === "group") return `${chat.name} group`;
+    const other = chat.members.find((m) => m.id !== currentUserId);
+    return userMap[other?.id]?.name || "Chat";
   }
 
   // logout
@@ -386,6 +388,7 @@ export default function Page() {
           removeUsers={removeGroupUsers}
           onLogout={handleLogout}
           getSenderName={getSenderName}
+          getChatTitle={getChatTitle}
           setSelectedUser={setSelectedUser}
           selectedUser={selectedUser}
         />

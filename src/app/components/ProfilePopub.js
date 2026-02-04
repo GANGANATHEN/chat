@@ -1,7 +1,7 @@
 import React from "react";
 import { X } from "lucide-react";
 
-const ProfileModal = ({ user, onClose }) => {
+const ProfileModal = ({ user, onClose, getChatTitle, chat, userMap, currentUser }) => {
   if (!user) return null;
 
   return (
@@ -41,7 +41,7 @@ const ProfileModal = ({ user, onClose }) => {
 
         {/* User Info */}
         <div className="px-6 py-4 text-center">
-          <h2 className="text-lg font-semibold">{user.name}</h2>
+          <h2 className="text-lg font-semibold">{userMap[user?.id]?.name}</h2>
           <p className="text-sm text-gray-400">
             {user.email || "No email provided"}
           </p>

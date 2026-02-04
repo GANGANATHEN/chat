@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Search } from "lucide-react";
 import { loadLocal } from "../utils/storage";
 
-const Users = ({ currentUser, openPrivateChat, chat, onClose, isMobile }) => {
+const Users = ({ currentUser, openPrivateChat, onClose, isMobile }) => {
   const users = loadLocal("users", []);
   const [query, setQuery] = useState("");
 

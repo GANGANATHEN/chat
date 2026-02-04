@@ -1,13 +1,10 @@
 import { X, Pencil, Camera, Check, LogOut } from "lucide-react";
 import { useState } from "react";
+import { loadLocal, saveLocal } from "../utils/storage";
 
-export default function UserProfile({
-  user,
-  currentUser,
-  onClose,
-  onSave,
-  onLogout,
-}) {
+export default function UserProfile({ user, currentUser, onClose, onLogout }) {
+  const users = loadLocal("users", []);
+
   const isMe = currentUser?.id === user?.id;
 
   const [editing, setEditing] = useState(false);
@@ -15,8 +12,23 @@ export default function UserProfile({
 
   function handleSave() {
     if (!name.trim()) return;
-    onSave?.(name);
+
+    // update users list
+    const updatedUsers = users.map((u) =>
+      u.id === currentUser.id ? { ...u, name } : u,
+    );
+
+    // save to localStorage
+    localStorage.setItem("users", JSON.stringify(updatedUsers));
+
+    // update currentUser in sessionStorage (VERY IMPORTANT)
+    const updatedCurrentUser = { ...currentUser, name };
+    sessionStorage.setItem("currentUser", JSON.stringify(updatedCurrentUser));
+
     setEditing(false);
+
+    // refresh UI source
+    window.location.reload();
   }
 
   function handleDelete() {
@@ -141,13 +153,8 @@ export default function UserProfile({
             {/* Logout */}
             <button
               onClick={onLogout}
-              className="
-        w-full flex items-center gap-3
-        px-3 py-2 rounded-md
-        text-sm text-gray-300
-        hover:bg-gray-800/70 hover:text-white
-        transition
-      "
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm 
+              text-gray-300 hover:bg-gray-800/70 hover:text-white transition"
             >
               <LogOut className="size-5 opacity-80" />
               <span>Logout</span>
@@ -156,15 +163,8 @@ export default function UserProfile({
             {/* Delete Account */}
             <button
               onClick={handleDelete}
-              className="
-        w-full mt-2
-        px-3 py-2 rounded-md
-        text-sm font-medium
-        text-red-400
-        hover:text-red-300
-        hover:bg-red-500/10
-        transition
-      "
+              className="w-full mt-2 px-3 py-2 rounded-md text-sm font-medium text-red-400 
+              hover:text-red-300 hover:bg-red-500/10 transition"
             >
               Delete account
             </button>
