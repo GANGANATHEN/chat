@@ -61,7 +61,7 @@ export function chatReducer(state, action) {
         }),
       };
     }
-    
+
     case "REMOVE_GROUP_MEMBER": {
       const { chatId, userId } = action.payload;
 
@@ -111,20 +111,30 @@ export function chatReducer(state, action) {
     case "SEND_MESSAGE": {
       const chats = state.chats.map((c) => {
         if (c.id !== state.activeChatId) return c;
+
         const MAX_MESSAGES = 30;
 
         // add new message
         const updatedMessages = [...c.messages, action.payload];
 
-        // keep only last 30 messages
-        const limitedMessages =
-          updatedMessages.length > MAX_MESSAGES
-            ? updatedMessages.slice(-MAX_MESSAGES)
-            : updatedMessages;
+        // separate system & normal messages
+        const systemMessages = updatedMessages.filter(
+          (m) => m.type === "system",
+        );
+
+        const normalMessages = updatedMessages.filter(
+          (m) => m.type !== "system",
+        );
+
+        // keep only last 30 normal messages
+        const limitedNormalMessages =
+          normalMessages.length > MAX_MESSAGES
+            ? normalMessages.slice(-MAX_MESSAGES)
+            : normalMessages;
 
         return {
           ...c,
-          messages: limitedMessages,
+          messages: [...systemMessages, ...limitedNormalMessages],
         };
       });
 

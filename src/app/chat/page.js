@@ -120,7 +120,7 @@ export default function Page() {
     const last = chat.messages.at(-1);
     const unreadCount = chat.messages.filter(
       (m) =>
-        m.sender.id !== currentUserId && !m.readBy?.includes(currentUserId),
+        m.sender?.id !== currentUserId && !m.readBy?.includes(currentUserId),
     ).length;
 
     return { lastMessageAt: last.createdAt, unreadCount };
@@ -260,6 +260,7 @@ export default function Page() {
     console.log("user removed", chatId, userId);
   }
 
+  // for send message
   function sendMessage() {
     if (!text || !state.activeChatId) return;
 
@@ -267,6 +268,7 @@ export default function Page() {
       type: "SEND_MESSAGE",
       payload: {
         id: uid(),
+        type: "text",
         sender: {
           id: state.currentUser.id,
           name: state.currentUser.name,
@@ -280,15 +282,31 @@ export default function Page() {
     setText("");
   }
 
+  // for group add/remove/leave message
+  function sendSystemMessage({ type, text, meta = {} }) {
+    if (!state.activeChatId) return;
+
+    dispatch({
+      type: "SEND_MESSAGE",
+      payload: {
+        id: uid(),
+        type,
+        text,
+        meta,
+        createdAt: Date.now(),
+      },
+    });
+  }
+
   // for logic issue in user profile
   function getSenderName(message, currentUser, userMap) {
-    if (message.sender.id === currentUser.id) {
+    if (message.sender?.id === currentUser.id) {
       return "You";
     }
 
-    console.log("Sender debug:", message.sender.name, message.sender.id);
+    console.log("Sender debug:", message.sender?.name, message.sender?.id);
 
-    return userMap[message.sender.id]?.name || "Unknown";
+    return userMap[message.sender?.id]?.name || "Unknown";
   }
 
   function getChatTitle(chat, currentUserId, userMap) {
@@ -405,6 +423,7 @@ export default function Page() {
           getChatTitle={getChatTitle}
           setSelectedUser={setSelectedUser}
           selectedUser={selectedUser}
+          sendSystemMessage={sendSystemMessage}
         />
       </div>
     </div>

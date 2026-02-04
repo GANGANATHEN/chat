@@ -9,6 +9,7 @@ export default function AddMemberDrawer({
   currentUser,
   addedUser,
   setAddedUser,
+   sendSystemMessage
 }) {
   const allUsers = loadLocal("users", []);
   const [query, setQuery] = useState("");
@@ -79,6 +80,14 @@ export default function AddMemberDrawer({
 
                     // show message
                     setAddedUser(u.name);
+                    sendSystemMessage({
+                      type: "add",
+                      text: `${u.name} was added by ${currentUser.name}`,
+                      meta: {
+                        userId: u.id,
+                        addedBy: currentUser.id,
+                      },
+                    });
 
                     // auto hide after 2s
                     setTimeout(() => setAddedUser(null), 2000);

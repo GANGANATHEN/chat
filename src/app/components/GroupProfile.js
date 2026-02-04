@@ -15,6 +15,7 @@ export default function GroupProfile({
   removedUser,
   setRemovedUser,
   isCurrentUserRemoved,
+  sendSystemMessage,
 }) {
   const [addOpen, setAddOpen] = useState(false);
 
@@ -79,9 +80,13 @@ export default function GroupProfile({
                 const isAdmin = chat.admin === currentUser.id;
                 const isMe = currentUser.id === m.id;
 
-                const showRemoveButton =
+                {
+                  /* const showRemoveButton =
                   (isAdmin && !isMe) || // admin --> remove others
-                  (!isAdmin && isMe); // member --> leave self
+                  (!isAdmin && isMe); // member --> leave self */
+                }
+                const isLeaving = isMe && !isAdmin; // member leaving self
+                const isRemoving = isAdmin && !isMe; // admin removing others
 
                 return (
                   <div
@@ -105,21 +110,35 @@ export default function GroupProfile({
                     </div>
 
                     {/* Remove / Leave */}
-                    {showRemoveButton && (
+                    {(isLeaving || isRemoving) && (
                       <button
                         onClick={() => {
                           onRemoveMember(m.id);
-                          setRemovedUser({
-                            name: m.name,
-                            id: m.id,
-                            remover: currentUser.name,
-                          });
-                          setTimeout(() => {
-                            setRemovedUser(null);
-                          }, 2000);
+
+                          // SYSTEM MESSAGE LOGIC
+                          if (isLeaving) {
+                            sendSystemMessage({
+                              type: "leave",
+                              text: `${m.name} left the group`,
+                              meta: {
+                                userId: m.id,
+                              },
+                            });
+                          }
+
+                          if (isRemoving) {
+                            sendSystemMessage({
+                              type: "remove",
+                              text: `${m.name} was removed by ${currentUser.name}`,
+                              meta: {
+                                userId: m.id,
+                                removedBy: currentUser.id,
+                              },
+                            });
+                          }
                         }}
                         className="cursor-pointer opacity-0 group-hover:opacity-100 
-                        transition flex items-center gap-1 text-red-400 hover:text-red-300"
+    transition flex items-center gap-1 text-red-400 hover:text-red-300"
                         title={isMe ? "Leave group" : "Remove member"}
                       >
                         <Minus size={16} />
@@ -130,7 +149,7 @@ export default function GroupProfile({
                     )}
 
                     {/* Admin badge */}
-                    {!showRemoveButton && chat.admin === m.id && (
+                    {!isRemoving && chat.admin === m.id && (
                       <span className="text-xs text-lime-300 font-medium">
                         Admin
                       </span>
@@ -176,6 +195,7 @@ export default function GroupProfile({
           currentUser={currentUser}
           addedUser={addedUser}
           setAddedUser={setAddedUser}
+          sendSystemMessage={sendSystemMessage}
         />
       )}
     </div>
