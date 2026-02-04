@@ -7,7 +7,6 @@ const Users = ({
   openPrivateChat,
   onClose,
   isMobile,
-  isOnline,
 }) => {
   const users = loadLocal("users", []);
   const [query, setQuery] = useState("");
@@ -47,7 +46,9 @@ const Users = ({
               // if names are same, sort by id
               return a.id.localeCompare(b.id);
             })
-            .map((u) => (
+            .map((u) => {
+              console.log(u.isOnline==true)
+              return(
               <div key={u.id} className={`py-1`}>
                 <div
                   onClick={() => {
@@ -59,12 +60,11 @@ const Users = ({
                        `}
                 >
                   <div
-                    className="
-                      h-9 w-9 rounded-full
+                    className={`h-9 w-9 rounded-full
                       bg-indigo-500
                       flex items-center justify-center
                       text-sm font-semibold text-white
-                    "
+                      ${u.isOnline == true ? "border border-lime-200" : ""}`}
                   >
                     {u.name[0].toUpperCase()}
                   </div>
@@ -72,7 +72,8 @@ const Users = ({
                   <span className="truncate">{u.name}</span>
                 </div>
               </div>
-            ))
+            )
+            })
         ) : (
           <div className="px-3 py-2 text-sm text-gray-500">
             No other users available

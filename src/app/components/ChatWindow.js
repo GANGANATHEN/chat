@@ -9,9 +9,15 @@ import {
   SendHorizontal,
   Users,
   User,
+  Eye,
+  EyeOff,
+  CheckCheck,
+  Check,
+  Info,
 } from "lucide-react";
 import ProfileModal from "./ProfilePopub";
 import SystemMessage from "./SystemMessage";
+import MessageInfoModal from "./MessageInfoModel";
 
 export default function ChatWindow({
   chat,
@@ -33,14 +39,18 @@ export default function ChatWindow({
   sendSystemMessage,
   otherUserDetails,
   isOnline,
-  lastSeenText
+  lastSeenText,
 }) {
   // ref for new messages
   const bottomRef = useRef(null);
   const [addedUser, setAddedUser] = useState(null);
   const [removedUser, setRemovedUser] = useState(null);
+  // for message seen/Unseen
+  const [readCount, setReadCount] = useState(0);
+  const [selectedMessage, setSelectedMessage] = useState(null);
+
   const isCurrentUserRemoved = removedUser?.id === currentUser?.id;
-  console.log(removedUser);
+  // console.log(removedUser);
 
   // scroll to bottom on new message
   useEffect(() => {
@@ -145,6 +155,25 @@ export default function ChatWindow({
           <div className="flex-1 min-h-0 p-4 overflow-y-auto custom-scrollbar space-y-3">
             {chat.messages.map((m) => {
               const isMe = m.sender?.id === currentUser.id;
+              let isRead = false;
+
+              if (isMe) {
+                if (chat.type === "private") {
+                  const otherUserId = chat.members.find(
+                    (u) => u.id !== currentUser.id,
+                  )?.id;
+
+                  isRead = m.readBy?.includes(otherUserId);
+                }
+
+                if (chat.type === "group") {
+                  const otherMembers = chat.members.filter(
+                    (u) => u.id !== currentUser.id,
+                  );
+
+                  isRead = otherMembers.every((u) => m.readBy?.includes(u.id));
+                }
+              }
 
               // TEXT MESSAGE
               if (m.type === "text") {
@@ -164,6 +193,22 @@ export default function ChatWindow({
                       <span className="text-[10px] text-gray-400">
                         {new Date(m.createdAt).toLocaleTimeString()}
                       </span>
+                      {isMe &&
+                        (chat.type === "private" ? (
+                          isRead ? (
+                            <CheckCheck size={14} className="text-green-400" />
+                          ) : (
+                            <Check size={14} className="text-gray-500" />
+                          )
+                        ) : (
+                          <button
+                            onClick={() => setSelectedMessage(m)}
+                            className="p-0.5 rounded hover:bg-gray-600"
+                            title="Message info"
+                          >
+                            <Info size={12} className="text-gray-400" />
+                          </button>
+                        ))}
                     </div>
 
                     {m.text}
@@ -197,6 +242,12 @@ export default function ChatWindow({
 
             <div ref={bottomRef} />
           </div>
+          <MessageInfoModal
+            message={selectedMessage}
+            chat={chat}
+            userMap={userMap}
+            onClose={() => setSelectedMessage(null)}
+          />
 
           <form
             onSubmit={(e) => {

@@ -7,28 +7,60 @@ const AllChats = ({
   openChat,
   isMobile,
   onClose,
+  state
 }) => {
   // const users = loadLocal("users", []);
   const [query, setQuery] = useState("");
 
+  function getUnreadCount(chat, currentUserId) {
+    return (chat.messages || []).filter((m) => {
+      const normalized = (m.readBy || []).map((r) =>
+        typeof r === "string" ? { userId: r, readAt: null } : r,
+      );
+      return !normalized.some((r) => r.userId === currentUserId);
+    }).length;
+  }
+
+  // const sortedSidebarItems = useMemo(() => {
+  //   return sidebarItems
+  //     .filter((item) => {
+  //       if (query && !item.title.toLowerCase().includes(query.toLowerCase()))
+  //         return false;
+  //       if (item.isMuted) return false;
+  //       return true;
+  //     })
+  //     .slice()
+  //     .sort((a, b) => {
+  //       if (a.lastMessageAt && b.lastMessageAt) {
+  //         return b.lastMessageAt - a.lastMessageAt;
+  //       }
+  //       if (a.lastMessageAt && !b.lastMessageAt) return -1;
+  //       if (!a.lastMessageAt && b.lastMessageAt) return 1;
+  //       return a.title.localeCompare(b.title);
+  //     });
+  // }, [sidebarItems, query]);
+
   const sortedSidebarItems = useMemo(() => {
     return sidebarItems
+      .map((item) => {
+        const chat = state.chats.find((c) => c.id === item.chatId);
+        const unreadCount = chat ? getUnreadCount(chat, currentUser.id) : 0;
+        return { ...item, unreadCount };
+      })
       .filter((item) => {
         if (query && !item.title.toLowerCase().includes(query.toLowerCase()))
           return false;
         if (item.isMuted) return false;
         return true;
       })
-      .slice()
       .sort((a, b) => {
-        if (a.lastMessageAt && b.lastMessageAt) {
+        if (a.lastMessageAt && b.lastMessageAt)
           return b.lastMessageAt - a.lastMessageAt;
-        }
         if (a.lastMessageAt && !b.lastMessageAt) return -1;
         if (!a.lastMessageAt && b.lastMessageAt) return 1;
         return a.title.localeCompare(b.title);
       });
-  }, [sidebarItems, query]);
+  }, [sidebarItems, state.chats, query, currentUser.id]);
 
   return (
     <div className={`custom-scrollbar sidebar-scroll-area pb-15`}>

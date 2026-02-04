@@ -275,7 +275,13 @@ export default function Page() {
         },
         text,
         createdAt: Date.now(),
-        readBy: [state.currentUser.id],
+        // readBy: [state.currentUser.id],
+        readBy: [
+          {
+            userId: state.currentUser.id,
+            readAt: Date.now(),
+          },
+        ],
       },
     });
 
@@ -356,6 +362,7 @@ export default function Page() {
   const otherUserDetails = userMap?.[otherUser?.id];
 
   const isOnline = otherUserDetails?.isOnline;
+  // console.log(isOnline)
 
   const lastSeenText = isOnline
     ? "Online"
@@ -396,6 +403,7 @@ export default function Page() {
           <AllChats
             sidebarItems={sidebarItems}
             currentUser={state.currentUser}
+            state={state}
             openChat={openChat}
             isMobile={isMobile}
             onClose={() => {
@@ -412,7 +420,6 @@ export default function Page() {
             openChat={openChat}
             openPrivateChat={openPrivateChat}
             isMobile={isMobile}
-            isOnline={isOnline}
             onClose={() => {
               setIsSectionOpen(false);
               setActiveSection(null);

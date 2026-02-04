@@ -206,12 +206,20 @@ export function chatReducer(state, action) {
           return {
             ...chat,
             messages: chat.messages.map((m) => {
-              // already read → no change
-              if (m.readBy?.includes(userId)) return m;
+              // normalize existing readBy
+              const normalized = (m.readBy || []).map((r) =>
+                typeof r === "string" ? { userId: r, readAt: null } : r,
+              );
 
+              // if user already in readBy → do nothing
+              if (normalized.some((r) => r.userId === userId)) {
+                return { ...m, readBy: normalized };
+              }
+
+              // add user with timestamp
               return {
                 ...m,
-                readBy: [...(m.readBy || []), userId],
+                readBy: [...normalized, { userId, readAt: Date.now() }],
               };
             }),
           };
