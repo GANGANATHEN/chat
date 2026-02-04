@@ -10,21 +10,26 @@ export default function GroupProfile({
   currentUser,
   setSelectedUser,
   userMap,
+  addedUser,
+  setAddedUser,
+  removedUser,
+  setRemovedUser,
+  isCurrentUserRemoved,
 }) {
   const [addOpen, setAddOpen] = useState(false);
-  const [removedUser, setRemovedUser] = useState(null);
-  // console.log(chat.admin)
+
+  // console.log(chat.members.some((m) => m.id === currentUser.id))
 
   return (
     <div
       className="fixed inset-0 z-50 bg-black/50 flex justify-end"
-      onClick={onClose}
+      // onClick={onClose}
     >
       {/* DRAWER */}
       <div
         className="w-105 max-w-full bg-gray-950 h-full flex flex-col shadow-2xl 
       animate-slideIn"
-        onClick={(e) => e.stopPropagation()}
+        // onClick={(e) => e.stopPropagation()}
       >
         {/* HEADER */}
         <div className="relative p-6 border-b border-gray-800">
@@ -104,7 +109,11 @@ export default function GroupProfile({
                       <button
                         onClick={() => {
                           onRemoveMember(m.id);
-                          setRemovedUser(m.name);
+                          setRemovedUser({
+                            name: m.name,
+                            id: m.id,
+                            remover: currentUser.name,
+                          });
                           setTimeout(() => {
                             setRemovedUser(null);
                           }, 2000);
@@ -134,7 +143,9 @@ export default function GroupProfile({
 
         {removedUser && (
           <p className="font-medium text-red-500 text-center text-sm mb-3">
-            {removedUser} was removed
+            {isCurrentUserRemoved
+              ? "You left the group"
+              : `${removedUser.name} was removed`}
           </p>
         )}
 
@@ -162,6 +173,9 @@ export default function GroupProfile({
           chat={chat}
           onAdd={onAddMember}
           onClose={() => setAddOpen(false)}
+          currentUser={currentUser}
+          addedUser={addedUser}
+          setAddedUser={setAddedUser}
         />
       )}
     </div>

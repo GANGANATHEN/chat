@@ -2,9 +2,15 @@ import { X, UserPlus, Search } from "lucide-react";
 import { useState, useMemo } from "react";
 import { loadLocal } from "../utils/storage";
 
-export default function AddMemberDrawer({ chat, onAdd, onClose }) {
+export default function AddMemberDrawer({
+  chat,
+  onAdd,
+  onClose,
+  currentUser,
+  addedUser,
+  setAddedUser,
+}) {
   const allUsers = loadLocal("users", []);
-  const [addedUser, setAddedUser] = useState(null);
   const [query, setQuery] = useState("");
 
   const filteredUsers = useMemo(() => {
@@ -68,15 +74,14 @@ export default function AddMemberDrawer({ chat, onAdd, onClose }) {
                     onAdd({
                       id: u.id,
                       name: u.name,
+                      addername: currentUser.name,
                     });
 
                     // show message
                     setAddedUser(u.name);
 
                     // auto hide after 2s
-                    setTimeout(() => {
-                      setAddedUser(null);
-                    }, 2000);
+                    setTimeout(() => setAddedUser(null), 2000);
                   }}
                   className="text-indigo-400 hover:text-indigo-300"
                   title="Add user"

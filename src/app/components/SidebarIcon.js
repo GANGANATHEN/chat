@@ -31,7 +31,7 @@ export default function Sidenav({
     }
   }, [isMobile, setOpen]);
 
-  console.log(isMobile);
+  // console.log(isMobile);
 
   return (
     <div

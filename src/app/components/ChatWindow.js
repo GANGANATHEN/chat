@@ -11,6 +11,7 @@ import {
   User,
 } from "lucide-react";
 import ProfileModal from "./ProfilePopub";
+import SystemMessage from "./SystemMessage";
 
 export default function ChatWindow({
   chat,
@@ -33,6 +34,10 @@ export default function ChatWindow({
 }) {
   // ref for new messages
   const bottomRef = useRef(null);
+  const [addedUser, setAddedUser] = useState(null);
+  const [removedUser, setRemovedUser] = useState(null);
+  const isCurrentUserRemoved = removedUser?.id === currentUser?.id;
+  console.log(removedUser);
 
   const otherUser = chat?.members?.find((u) => u.id !== currentUser.id);
 
@@ -87,6 +92,10 @@ export default function ChatWindow({
                 onRemoveMember={(userId) => removeUsers(profileUser.id, userId)}
                 currentUser={currentUser}
                 setSelectedUser={setSelectedUser}
+                isCurrentUserRemoved={isCurrentUserRemoved}
+                setRemovedUser={setRemovedUser}
+                addedUser={addedUser}
+                setAddedUser={setAddedUser}
               />
             ) : (
               <UserProfile
@@ -118,6 +127,17 @@ export default function ChatWindow({
       ) : (
         <>
           <div className="flex-1 min-h-0 p-4 overflow-y-auto custom-scrollbar space-y-3">
+            {addedUser && (
+              <SystemMessage type="add">
+                {addedUser.name} was added to the group
+              </SystemMessage>
+            )}
+
+            {removedUser && (
+              <SystemMessage type="remove">
+                {removedUser.name} was removed from the group
+              </SystemMessage>
+            )}
             {chat.messages.map((m) => {
               const isMe = m.sender?.id === currentUser.id;
 
