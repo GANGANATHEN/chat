@@ -2,7 +2,13 @@ import React, { useState, useMemo } from "react";
 import { Search } from "lucide-react";
 import { loadLocal } from "../utils/storage";
 
-const Users = ({ currentUser, openPrivateChat, onClose, isMobile }) => {
+const Users = ({
+  currentUser,
+  openPrivateChat,
+  onClose,
+  isMobile,
+  isOnline,
+}) => {
   const users = loadLocal("users", []);
   const [query, setQuery] = useState("");
 
@@ -48,13 +54,9 @@ const Users = ({ currentUser, openPrivateChat, onClose, isMobile }) => {
                     openPrivateChat(u);
                     if (!isMobile && onClose) onClose();
                   }}
-                  className="
-                      flex items-center gap-3 py-1.5 px-2 rounded-lg
-                      text-gray-200
-                      hover:bg-gray-800
-                      hover:text-white/40
-                      transition-colors
-                    "
+                  className={`flex items-center gap-3 py-1.5 px-2 rounded-lg
+                      text-gray-200 hover:bg-gray-800 hover:text-white/40 transition-colors
+                       `}
                 >
                   <div
                     className="

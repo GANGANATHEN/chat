@@ -316,15 +316,50 @@ export default function Page() {
     return userMap[other?.id]?.name || "Chat";
   }
 
+  // for lastseen time
+  function formatLastSeen(ts) {
+    if (!ts) return "";
+
+    const now = Date.now();
+    const diff = now - ts;
+
+    const ONE_MIN = 60000;
+    const ONE_HOUR = 3600000;
+    const ONE_DAY = 86400000;
+
+    if (diff < ONE_MIN) {
+      return "just now";
+    }
+
+    if (diff < ONE_HOUR) {
+      return `${Math.floor(diff / ONE_MIN)} min ago`;
+    }
+
+    if (diff < ONE_DAY) {
+      return new Date(ts).toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    if (diff < ONE_DAY * 2) {
+      return "yesterday";
+    }
+
+    return `${Math.floor(diff / ONE_DAY)} days ago`;
+  }
+
   // for lastseen/online
-  const otherUser = activeChat?.members?.find((u) => u.id !== state.currentUser.id);
+  const otherUser = activeChat?.members?.find(
+    (u) => u.id !== state.currentUser.id,
+  );
   const otherUserDetails = userMap?.[otherUser?.id];
 
   const isOnline = otherUserDetails?.isOnline;
 
-  const lastSeenText = otherUserDetails?.lastSeen
-    ? `Last seen ${new Date(otherUserDetails.lastSeen).toLocaleTimeString()}`
-    : "";
+  const lastSeenText = isOnline
+    ? "Online"
+    : `Last seen ${formatLastSeen(otherUserDetails?.lastSeen)}`;
 
   // logout
   const handleLogout = () => {
@@ -377,6 +412,7 @@ export default function Page() {
             openChat={openChat}
             openPrivateChat={openPrivateChat}
             isMobile={isMobile}
+            isOnline={isOnline}
             onClose={() => {
               setIsSectionOpen(false);
               setActiveSection(null);
