@@ -26,12 +26,14 @@ export default function ChatWindow({
   setProfileOpen,
   handleProfile,
   getSenderName,
-  getChatTitle,
   userMap,
   setSelectedUser,
   selectedUser,
   onLogout,
   sendSystemMessage,
+  otherUserDetails,
+  isOnline,
+  lastSeenText
 }) {
   // ref for new messages
   const bottomRef = useRef(null);
@@ -39,8 +41,6 @@ export default function ChatWindow({
   const [removedUser, setRemovedUser] = useState(null);
   const isCurrentUserRemoved = removedUser?.id === currentUser?.id;
   console.log(removedUser);
-
-  const otherUser = chat?.members?.find((u) => u.id !== currentUser.id);
 
   // scroll to bottom on new message
   useEffect(() => {
@@ -53,32 +53,46 @@ export default function ChatWindow({
     <section className="flex-1 w-full h-full flex flex-col bg-gray-900 overflow-hidden">
       <div className="flex items-center gap-x-4 px-3.5 py-3 ">
         {["group", "private"].includes(chat?.type) && (
-          <div className="flex items-center gap-x-2 font-semibold text-lg truncate">
+          <div className="flex items-center gap-x-2 font-semibold truncate">
             <button
               onClick={() => {
                 if (chat.type === "group") {
-                  // open group profile
                   handleProfile(chat);
                 } else {
-                  // private chat for other user
-                  const otherUser = chat.members.find(
-                    (m) => m.id !== currentUser.id,
-                  );
-                  handleProfile(otherUser);
+                  handleProfile(otherUserDetails);
                 }
               }}
-              className="rounded-full p-2 bg-gray-600 cursor-pointer"
+              className="relative rounded-full p-2 bg-gray-600"
             >
               {chat?.type === "group" ? (
                 <Users size={17} />
               ) : (
                 <User size={17} />
               )}
+
+              {/* Online dot */}
+              {chat.type === "private" && isOnline && (
+                <span className="absolute top-1 right-1">
+                  <span className="absolute h-2.5 w-2.5 rounded-full bg-green-400 opacity-75 animate-ping"></span>
+                  <span className="relative h-2.5 w-2.5 rounded-full bg-green-500"></span>
+                </span>
+              )}
             </button>
 
-            {chat?.type === "group"
-              ? `${chat.name} group`
-              : getChatTitle(chat, currentUser.id, userMap)}
+            {/* Name + status */}
+            <div className="flex flex-col leading-tight">
+              <span className="text-sm font-semibold">
+                {chat?.type === "group"
+                  ? `${chat.name} group`
+                  : otherUserDetails?.name}
+              </span>
+
+              {chat.type === "private" && (
+                <span className="text-xs text-gray-400">
+                  {isOnline ? "Online" : lastSeenText}
+                </span>
+              )}
+            </div>
           </div>
         )}
 

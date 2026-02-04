@@ -316,6 +316,16 @@ export default function Page() {
     return userMap[other?.id]?.name || "Chat";
   }
 
+  // for lastseen/online
+  const otherUser = activeChat?.members?.find((u) => u.id !== state.currentUser.id);
+  const otherUserDetails = userMap?.[otherUser?.id];
+
+  const isOnline = otherUserDetails?.isOnline;
+
+  const lastSeenText = otherUserDetails?.lastSeen
+    ? `Last seen ${new Date(otherUserDetails.lastSeen).toLocaleTimeString()}`
+    : "";
+
   // logout
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
@@ -424,6 +434,9 @@ export default function Page() {
           setSelectedUser={setSelectedUser}
           selectedUser={selectedUser}
           sendSystemMessage={sendSystemMessage}
+          otherUserDetails={otherUserDetails}
+          isOnline={isOnline}
+          lastSeenText={lastSeenText}
         />
       </div>
     </div>

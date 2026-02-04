@@ -11,13 +11,66 @@ export function chatReducer(state, action) {
       };
 
     case "LOGIN": {
-      sessionStorage.setItem("currentUser", JSON.stringify(action.payload));
-      return { ...state, currentUser: action.payload };
+      const { name, pass } = action.payload;
+
+      let users = loadLocal("users", []);
+      let user = users.find((u) => u.name === name && u.pass === pass);
+
+      if (!user) {
+        // NEW USER
+        user = {
+          id: uid(),
+          name,
+          pass,
+          isOnline: true,
+          lastSeen: null,
+        };
+        users.push(user);
+      } else {
+        // EXISTING USER
+        user = {
+          ...user,
+          isOnline: true,
+          lastSeen: null,
+        };
+        users = users.map((u) => (u.id === user.id ? user : u));
+      }
+
+      localStorage.setItem("users", JSON.stringify(users));
+      sessionStorage.setItem("currentUser", JSON.stringify(user));
+
+      return {
+        ...state,
+        currentUser: user,
+      };
     }
 
-    case "LOGOUT":
+    case "LOGOUT": {
+      const currentUser = state.currentUser;
+      if (!currentUser) return state;
+
+      // update users list
+      let users = loadLocal("users", []);
+
+      users = users.map((u) =>
+        u.id === currentUser.id
+          ? {
+              ...u,
+              isOnline: false,
+              lastSeen: Date.now(),
+            }
+          : u,
+      );
+
+      localStorage.setItem("users", JSON.stringify(users));
       sessionStorage.removeItem("currentUser");
-      return { ...state, currentUser: null, activeChatId: null };
+
+      return {
+        ...state,
+        currentUser: null,
+        activeChatId: null,
+      };
+    }
 
     case "SET_ACTIVE_CHAT":
       return { ...state, activeChatId: action.payload };
