@@ -9,7 +9,8 @@ export default function MessageBubble({
   currentUser,
   userMap,
   setSelectedMessage,
-  getSenderName
+  getSenderName,
+  getFileIcon
 }) {
   const time = new Date(m.createdAt).toLocaleTimeString();
 
@@ -48,7 +49,7 @@ export default function MessageBubble({
         </div>
 
         {/* BODY */}
-        <MessageContent m={m} />
+        <MessageContent m={m} getFileIcon={getFileIcon }  />
       </div>
     </div>
   );

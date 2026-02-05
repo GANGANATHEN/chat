@@ -1,5 +1,24 @@
-import { File } from "lucide-react";
+import { File, Images, Video, Music, Archive } from "lucide-react";
 export default function MessageContent({ m }) {
+  function getFileIcon(file) {
+    if (!file?.mimeType) return <File size={18} />;
+
+    if (file.mimeType.startsWith("image/")) return <Images size={18} />;
+    if (file.mimeType.startsWith("video/")) return <Video size={18} />;
+    if (file.mimeType.startsWith("audio/")) return <Music size={18} />;
+
+    // For compressed files
+    if (
+      file.mimeType === "application/zip" ||
+      file.name.endsWith(".zip") ||
+      file.name.endsWith(".rar") ||
+      file.mimeType === "application/x-zip-compressed"
+    )
+      return <Archive size={18} />;
+
+    return <File size={18} />; // fallback
+  }
+
   switch (m.type) {
     case "text":
       return <p className="whitespace-pre-wrap">{m.content?.text}</p>;
@@ -23,14 +42,16 @@ export default function MessageContent({ m }) {
       return <audio controls src={m.content?.url} className="w-56" />;
 
     case "file":
+      // console.log(m.content);
+
       return (
         <a
           href={m.content?.url}
           download
           className="flex items-center gap-2 underline"
         >
-          <File size={16} />
-          {m.content?.fileName}
+          {getFileIcon && getFileIcon(m.content)}
+          {m.content?.name}
         </a>
       );
 

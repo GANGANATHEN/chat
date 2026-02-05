@@ -3,12 +3,16 @@ import UserProfile from "../components/UserProfile";
 import GroupProfile from "../components/GroupProfile";
 import { useState, useEffect, useRef } from "react";
 import {
-  Images,
   AudioLines,
   FilePlus,
   SendHorizontal,
   Users,
   User,
+  File,
+  Images,
+  Video,
+  Music,
+  Archive,
 } from "lucide-react";
 import ProfileModal from "./ProfilePopub";
 import SystemMessage from "./SystemMessage";
@@ -22,7 +26,6 @@ export default function ChatWindow({
   text,
   setText,
   sendMessage,
-  handleSendText,
   addUsers,
   removeUsers,
   profileOpen,
@@ -41,7 +44,6 @@ export default function ChatWindow({
   isRecording,
   stopRecording,
   startRecording,
-  openFilePicker,
   selectedFiles,
   handleSendAll,
   fileInputRef,
@@ -54,6 +56,19 @@ export default function ChatWindow({
   const bottomRef = useRef(null);
   const [addedUser, setAddedUser] = useState(null);
   const [selectedMessage, setSelectedMessage] = useState(null);
+
+  function getFileIcon(file) {
+    if (file.type.startsWith("image/")) return <Images size={18} />;
+    if (file.type.startsWith("video/")) return <Video size={18} />;
+    if (file.type.startsWith("audio/")) return <Music size={18} />;
+    if (
+      file.type === "application/zip" ||
+      file.name.endsWith(".zip") ||
+      file.name.endsWith(".rar")
+    )
+      return <Archive size={18} />;
+    return <File size={18} />;
+  }
 
   // scroll to bottom on new message
   useEffect(() => {
@@ -190,6 +205,7 @@ export default function ChatWindow({
                     userMap={userMap}
                     setSelectedMessage={setSelectedMessage}
                     getSenderName={getSenderName}
+                    getFileIcon={getFileIcon}
                   />
                 );
               })}
@@ -274,8 +290,10 @@ export default function ChatWindow({
         text-gray-200 text-xs
         rounded-xl max-w-xs"
                   >
-                    📎
+                    {getFileIcon(file)}
+
                     <span className="truncate">{file.name}</span>
+
                     <button
                       type="button"
                       onClick={() =>
