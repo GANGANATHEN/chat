@@ -1,4 +1,4 @@
-import { File, Images, Video, Music, Archive } from "lucide-react";
+import { File, Images, Video, Music, FolderArchive } from "lucide-react";
 export default function MessageContent({ m }) {
   function getFileIcon(file) {
     if (!file?.mimeType) return <File size={18} />;
@@ -6,7 +6,6 @@ export default function MessageContent({ m }) {
     if (file.mimeType.startsWith("image/")) return <Images size={18} />;
     if (file.mimeType.startsWith("video/")) return <Video size={18} />;
     if (file.mimeType.startsWith("audio/")) return <Music size={18} />;
-
     // For compressed files
     if (
       file.mimeType === "application/zip" ||
@@ -14,7 +13,7 @@ export default function MessageContent({ m }) {
       file.name.endsWith(".rar") ||
       file.mimeType === "application/x-zip-compressed"
     )
-      return <Archive size={18} />;
+      return <FolderArchive size={18} />;
 
     return <File size={18} />; // fallback
   }

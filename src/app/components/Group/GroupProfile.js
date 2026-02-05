@@ -1,6 +1,6 @@
 import { X, UserPlus, Users } from "lucide-react";
 import { useState } from "react";
-import AddMemberDrawer from "./AddMemberDrawer";
+import AddMemberDrawer from "../Group/AddMemberDrawer";
 
 export default function GroupProfile({
   chat,

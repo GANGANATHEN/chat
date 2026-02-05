@@ -1,6 +1,6 @@
 import { X, UserPlus, Search } from "lucide-react";
 import { useState, useMemo } from "react";
-import { loadLocal } from "../utils/storage";
+import { loadLocal } from "../../utils/storage";
 
 export default function AddMemberDrawer({
   chat,

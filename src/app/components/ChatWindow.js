@@ -1,6 +1,5 @@
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import UserProfile from "../components/UserProfile";
-import GroupProfile from "../components/GroupProfile";
+import UserProfile from "../components/User/UserProfile";
+import GroupProfile from "../components/Group/GroupProfile";
 import { useState, useEffect, useRef } from "react";
 import {
   AudioLines,
@@ -14,10 +13,10 @@ import {
   Music,
   Archive,
 } from "lucide-react";
-import ProfileModal from "./ProfilePopub";
-import SystemMessage from "./SystemMessage";
-import MessageInfoModal from "./MessageInfoModel";
-import MessageBubble from "./MessageBubble";
+import ProfileModal from "./Profile/ProfilePopub";
+import SystemMessage from "./Message/SystemMessage";
+import MessageInfoModal from "../components/Message/MessageInfoModel";
+import MessageBubble from "../components/Message/MessageBubble";
 
 export default function ChatWindow({
   chat,
@@ -219,7 +218,7 @@ export default function ChatWindow({
             userMap={userMap}
             onClose={() => setSelectedMessage(null)}
           />
-
+          {/* input bar */}
           <form
             onSubmit={(e) => {
               e.preventDefault();

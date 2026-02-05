@@ -1,6 +1,6 @@
 import { X, Pencil, Camera, Check, LogOut } from "lucide-react";
 import { useState } from "react";
-import { loadLocal, saveLocal } from "../utils/storage";
+import { loadLocal, saveLocal } from "../../utils/storage";
 
 export default function UserProfile({ user, currentUser, onClose, onLogout }) {
   const users = loadLocal("users", []);

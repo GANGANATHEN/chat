@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Search } from "lucide-react";
-import { loadLocal } from "../utils/storage";
+import { loadLocal } from "../../utils/storage";
 
 const Groups = ({
   createGroup,

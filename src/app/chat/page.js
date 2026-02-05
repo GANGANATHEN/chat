@@ -7,11 +7,11 @@ import SidebarIcon from "../components/SidebarIcon";
 import Section from "../components/Section";
 import { useRouter } from "next/navigation";
 // data
-import Profile from "../components/Profile";
+import Profile from "../components/Profile/Profile";
 import AllChats from "../components/AllChats";
-import Users from "../components/Users";
-import Groups from "../components/Groups";
-import GroupNamePrompt from "../components/GroupNamePrompt";
+import Users from "../components/User/Users";
+import Groups from "../components/Group/Groups";
+import GroupNamePrompt from "../components/Group/GroupNamePrompt";
 
 export default function Page() {
   const router = useRouter();
