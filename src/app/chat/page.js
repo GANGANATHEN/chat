@@ -376,7 +376,7 @@ export default function Page() {
 
   /* -------------------- UI -------------------- */
   return (
-    <div className="h-screen w-full flex bg-gray-900 text-white">
+    <div className="h-dvh w-full flex bg-gray-900 text-white">
       {/* LEFT ICON SIDEBAR */}
       <div className="min-w-12">
         <SidebarIcon

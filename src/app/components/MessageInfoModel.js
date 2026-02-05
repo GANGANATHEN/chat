@@ -3,15 +3,33 @@ import React from "react";
 export default function MessageInfoModal({ message, chat, userMap, onClose }) {
   if (!message) return null;
 
-  // normalize readers (old vs new)
+  // Normalize readers (old vs new)
   const readers = (message.readBy || []).map((r) =>
     typeof r === "string" ? { userId: r, readAt: null } : r,
   );
 
-  const senderId = message.sender?.id;
+  // Exclude sender
+  let filteredReaders = readers.filter((r) => r.userId !== message.sender?.id);
 
-  // exclude sender from list
-  const filteredReaders = readers.filter((r) => r.userId !== senderId);
+  // Deduplicate by userId
+  const uniqueReadersMap = {};
+  filteredReaders.forEach((r) => {
+    if (!uniqueReadersMap[r.userId]) {
+      uniqueReadersMap[r.userId] = r;
+    } else {
+      // If readAt exists for the new one, keep the latest
+      if (
+        r.readAt &&
+        (!uniqueReadersMap[r.userId].readAt ||
+          r.readAt > uniqueReadersMap[r.userId].readAt)
+      ) {
+        uniqueReadersMap[r.userId] = r;
+      }
+    }
+  });
+
+  // Convert back to array
+  filteredReaders = Object.values(uniqueReadersMap);
 
   return (
     <div
@@ -49,7 +67,7 @@ export default function MessageInfoModal({ message, chat, userMap, onClose }) {
                     {new Date(r.readAt).toLocaleTimeString("en-GB", {
                       hour: "2-digit",
                       minute: "2-digit",
-                      second:"2-digit"
+                      second: "2-digit",
                     })}
                   </span>
                 )}

@@ -21,25 +21,6 @@ const AllChats = ({
     }).length;
   }
 
-  // const sortedSidebarItems = useMemo(() => {
-  //   return sidebarItems
-  //     .filter((item) => {
-  //       if (query && !item.title.toLowerCase().includes(query.toLowerCase()))
-  //         return false;
-  //       if (item.isMuted) return false;
-  //       return true;
-  //     })
-  //     .slice()
-  //     .sort((a, b) => {
-  //       if (a.lastMessageAt && b.lastMessageAt) {
-  //         return b.lastMessageAt - a.lastMessageAt;
-  //       }
-  //       if (a.lastMessageAt && !b.lastMessageAt) return -1;
-  //       if (!a.lastMessageAt && b.lastMessageAt) return 1;
-  //       return a.title.localeCompare(b.title);
-  //     });
-  // }, [sidebarItems, query]);
-
   const sortedSidebarItems = useMemo(() => {
     return sidebarItems
       .map((item) => {

@@ -81,12 +81,12 @@ export default function ChatWindow({
               )}
 
               {/* Online dot */}
-              {chat.type === "private" && isOnline && (
-                <span className="absolute top-1 right-1">
-                  <span className="absolute h-2.5 w-2.5 rounded-full bg-green-400 opacity-75 animate-ping"></span>
-                  <span className="relative h-2.5 w-2.5 rounded-full bg-green-500"></span>
+              {/* {chat.type === "private" && isOnline && (
+                <span className="absolute top-0 right-0 flex items-center justify-center">
+                  <span className="absolute inline-flex h-3 w-3 rounded-full bg-green-400 opacity-50 animate-ping"></span>
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500 shadow-md"></span>
                 </span>
-              )}
+              )} */}
             </button>
 
             {/* Name + status */}

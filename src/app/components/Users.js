@@ -2,12 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Search } from "lucide-react";
 import { loadLocal } from "../utils/storage";
 
-const Users = ({
-  currentUser,
-  openPrivateChat,
-  onClose,
-  isMobile,
-}) => {
+const Users = ({ currentUser, openPrivateChat, onClose, isMobile }) => {
   const users = loadLocal("users", []);
   const [query, setQuery] = useState("");
 
@@ -18,7 +13,12 @@ const Users = ({
           u.id !== currentUser.id &&
           u.name.toLowerCase().includes(query.toLowerCase()),
       )
-      .map((u) => ({ id: u.id, name: u.name }));
+      .map((u) => ({
+        id: u.id,
+        name: u.name,
+        isOnline: u.isOnline,
+        lastSeen: u.lastSeen,
+      }));
   }, [query, users, currentUser.id]);
 
   return (
@@ -47,32 +47,72 @@ const Users = ({
               return a.id.localeCompare(b.id);
             })
             .map((u) => {
-              console.log(u.isOnline==true)
-              return(
-              <div key={u.id} className={`py-1`}>
-                <div
-                  onClick={() => {
-                    openPrivateChat(u);
-                    if (!isMobile && onClose) onClose();
-                  }}
-                  className={`flex items-center gap-3 py-1.5 px-2 rounded-lg
-                      text-gray-200 hover:bg-gray-800 hover:text-white/40 transition-colors
-                       `}
-                >
+              console.log(u.lastSeen);
+              return (
+                <div key={u.id} className="py-1">
                   <div
-                    className={`h-9 w-9 rounded-full
-                      bg-indigo-500
-                      flex items-center justify-center
-                      text-sm font-semibold text-white
-                      ${u.isOnline == true ? "border border-lime-200" : ""}`}
+                    onClick={() => {
+                      openPrivateChat(u);
+                      if (!isMobile && onClose) onClose();
+                    }}
+                    className="relative flex items-center gap-3 py-1.5 px-2 rounded-lg
+               text-gray-200 hover:bg-gray-800 transition-colors group cursor-pointer"
                   >
-                    {u.name[0].toUpperCase()}
-                  </div>
+                    {/* Avatar */}
+                    <div className="relative h-9 w-9 shrink-0">
+                      <div
+                        className={`h-9 w-9 rounded-full bg-indigo-500 flex items-center justify-center
+                    text-sm font-semibold text-white`}
+                      >
+                        {u.name[0].toUpperCase()}
+                      </div>
 
-                  <span className="truncate">{u.name}</span>
+                      {/* Online indicator */}
+                      {u.isOnline && (
+                        <span className="absolute bottom-0 right-0 flex items-center justify-center">
+                          {/* Halo / Pulse */}
+                          <span className="absolute inline-flex h-3 w-3 rounded-full bg-green-400 opacity-50 animate-ping"></span>
+                          {/* Solid dot */}
+                          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500 shadow-md"></span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Name + Last Seen */}
+                    <div className="flex flex-col">
+                      <span className="truncate">{u.name}</span>
+
+                      {/* Last seen text - inline on mobile, tooltip on desktop */}
+                      {!u.isOnline && u.lastSeen && (
+                        <>
+                          {/* Desktop: hover tooltip */}
+                          <div
+                            className="hidden md:block absolute -top-7 left-1/2 transform -translate-x-1/2
+                        bg-gray-800 text-white text-[10px] px-2 py-0.5 rounded-full
+                        shadow-lg opacity-0 group-hover:opacity-100 transition-opacity
+                        whitespace-nowrap z-50 pointer-events-none"
+                          >
+                            Last seen{" "}
+                            {new Date(u.lastSeen).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </div>
+
+                          {/* Mobile: inline text */}
+                          <span className="block md:hidden text-[10px] text-gray-400">
+                            Last seen{" "}
+                            {new Date(u.lastSeen).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )
+              );
             })
         ) : (
           <div className="px-3 py-2 text-sm text-gray-500">
