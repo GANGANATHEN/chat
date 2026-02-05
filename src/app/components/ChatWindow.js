@@ -38,6 +38,17 @@ export default function ChatWindow({
   otherUserDetails,
   isOnline,
   lastSeenText,
+  isRecording,
+  stopRecording,
+  startRecording,
+  openFilePicker,
+  selectedFiles,
+  handleSendAll,
+  fileInputRef,
+  handleFileSelect,
+  setSelectedFiles,
+  imageFiles,
+  otherFiles,
 }) {
   // ref for new messages
   const bottomRef = useRef(null);
@@ -145,42 +156,43 @@ export default function ChatWindow({
       ) : (
         <>
           <div className="flex-1 min-h-0 p-4 overflow-y-auto custom-scrollbar space-y-3">
-            {chat.messages.map((m) => {
-              if (m?.type === "system") {
-                return <SystemMessage key={m.id} m={m} />;
-              }
+            {[...chat.messages]
+              .sort((a, b) => a.createdAt - b.createdAt)
+              .map((m) => {
+                if (m?.type === "system")
+                  return <SystemMessage key={m.id} m={m} />;
 
-              const isMe = m.sender?.id === currentUser.id;
-              let isRead = false;
+                const isMe = m.sender?.id === currentUser.id;
+                let isRead = false;
 
-              if (isMe) {
-                if (chat.type === "private") {
-                  const otherId = chat.members.find(
-                    (u) => u.id !== currentUser.id,
-                  )?.id;
-                  isRead = m.readBy?.some((r) => r.userId === otherId);
-                } else {
-                  const others = chat.members.filter(
-                    (u) => u.id !== currentUser.id,
-                  );
-                  isRead = others.every((u) => m.readBy?.includes(u.id));
+                if (isMe) {
+                  if (chat.type === "private") {
+                    const otherId = chat.members.find(
+                      (u) => u.id !== currentUser.id,
+                    )?.id;
+                    isRead = m.readBy?.some((r) => r.userId === otherId);
+                  } else {
+                    const others = chat.members.filter(
+                      (u) => u.id !== currentUser.id,
+                    );
+                    isRead = others.every((u) => m.readBy?.includes(u.id));
+                  }
                 }
-              }
 
-              return (
-                <MessageBubble
-                  key={m.id}
-                  m={m}
-                  isMe={isMe}
-                  chat={chat}
-                  isRead={isRead}
-                  currentUser={currentUser}
-                  userMap={userMap}
-                  setSelectedMessage={setSelectedMessage}
-                  getSenderName={getSenderName}
-                />
-              );
-            })}
+                return (
+                  <MessageBubble
+                    key={m.id}
+                    m={m}
+                    isMe={isMe}
+                    chat={chat}
+                    isRead={isRead}
+                    currentUser={currentUser}
+                    userMap={userMap}
+                    setSelectedMessage={setSelectedMessage}
+                    getSenderName={getSenderName}
+                  />
+                );
+              })}
 
             <div ref={bottomRef} />
           </div>
@@ -195,43 +207,115 @@ export default function ChatWindow({
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              handleSendText();
+              handleSendAll();
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                handleSendText();
+                handleSendAll();
               }
             }}
             className="px-3 py-3"
           >
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={handleFileSelect}
+            />
+            {imageFiles.length > 0 && (
+              <div className="mb-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                {imageFiles.map((file, index) => {
+                  const url = URL.createObjectURL(file);
+
+                  return (
+                    <div
+                      key={index}
+                      className="relative group rounded-xl overflow-hidden
+          border border-gray-700"
+                    >
+                      <img
+                        src={url}
+                        alt={file.name}
+                        className="h-24 w-full object-cover"
+                      />
+
+                      {/* remove button */}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelectedFiles((prev) =>
+                            prev.filter((f) => f !== file),
+                          )
+                        }
+                        className="absolute top-1 right-1
+            bg-black/60 text-white text-xs
+            rounded-full w-6 h-6
+            flex items-center justify-center
+            opacity-0 group-hover:opacity-100
+            transition"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {otherFiles.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {otherFiles.map((file, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2
+        px-3 py-2 bg-gray-700/70
+        text-gray-200 text-xs
+        rounded-xl max-w-xs"
+                  >
+                    📎
+                    <span className="truncate">{file.name}</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSelectedFiles((prev) =>
+                          prev.filter((f) => f !== file),
+                        )
+                      }
+                      className="text-gray-400 hover:text-white"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div
-              className="mx-auto max-w-3xl flex justify-center items-center gap-2
-            bg-gray-800 border border-gray-700 rounded-3xl px-3 py-2 
-            focus-within:border-blue-500 transition"
+              className="mx-auto max-w-3xl flex items-end gap-2
+  bg-gray-800 border border-gray-700 rounded-3xl px-3 py-2
+  focus-within:border-blue-500 transition"
             >
               {/* ACTIONS */}
               <div className="flex items-center gap-1">
                 <button
                   type="button"
-                  className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-700 transition"
-                  title="Attach file"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-700"
                 >
                   <FilePlus size={18} />
                 </button>
 
                 <button
                   type="button"
-                  className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-700 transition"
-                  title="Upload image"
-                >
-                  <Images size={18} />
-                </button>
-
-                <button
-                  type="button"
-                  className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-700 transition"
-                  title="Voice message"
+                  onClick={isRecording ? stopRecording : startRecording}
+                  className={`p-2 rounded-full transition ${
+                    isRecording
+                      ? "bg-red-500 text-white animate-pulse"
+                      : "text-gray-400 hover:text-white hover:bg-gray-700"
+                  }`}
+                  title={isRecording ? "Stop recording" : "Voice message"}
                 >
                   <AudioLines size={18} />
                 </button>
@@ -242,18 +326,21 @@ export default function ChatWindow({
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 rows={1}
-                placeholder="Message....."
-                className="flex-1 resize-none bg-transparent text-sm text-gray-100 placeholder-gray-400 focus:outline-none max-h-40 px-1"
+                placeholder="Message..."
+                className="flex-1 resize-none bg-transparent text-sm text-gray-100 
+                placeholder-gray-400 focus:outline-none px-1 max-h-40 overflow-y-auto 
+                custom-scrollbar mb-2"
                 onInput={(e) => {
                   e.target.style.height = "auto";
-                  e.target.style.height = e.target.scrollHeight + "px";
+                  e.target.style.height =
+                    Math.min(e.target.scrollHeight, 160) + "px";
                 }}
               />
 
               {/* SEND */}
               <button
                 type="submit"
-                disabled={!text.trim()}
+                disabled={!text.trim() && selectedFiles.length === 0}
                 className="p-2 flex items-center justify-center text-center rounded-full 
                 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700
                 disabled:text-gray-500 text-white shadow-sm hover:shadow-md transition-all 

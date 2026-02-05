@@ -41,10 +41,12 @@ export default function Page() {
   // for message
   const [text, setText] = useState("");
   const [isRecording, setIsRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [audioChunks, setAudioChunks] = useState([]);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  // for all type of files
   const fileInputRef = useRef(null);
-  const imageInputRef = useRef(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
   // console.log(selectedUser);
 
   /* -------------------- INIT -------------------- */
@@ -273,34 +275,7 @@ export default function Page() {
     console.log("user removed", chatId, userId);
   }
 
-  // for send message
-  // function sendMessage() {
-  //   if (!text || !state.activeChatId) return;
-
-  //   dispatch({
-  //     type: "SEND_MESSAGE",
-  //     payload: {
-  //       id: uid(),
-  //       type: "text",
-  //       sender: {
-  //         id: state.currentUser.id,
-  //         name: state.currentUser.name,
-  //       },
-  //       text,
-  //       createdAt: Date.now(),
-  //       // readBy: [state.currentUser.id],
-  //       readBy: [
-  //         {
-  //           userId: state.currentUser.id,
-  //           readAt: Date.now(),
-  //         },
-  //       ],
-  //     },
-  //   });
-
-  //   setText("");
-  // }
-
+  // for send all messages
   function sendMessage({ type, content = {}, meta = {} }) {
     if (!state.activeChatId) return;
 
@@ -324,6 +299,7 @@ export default function Page() {
     });
   }
 
+  // send text
   function handleSendText() {
     if (!text.trim()) return;
 
@@ -336,6 +312,121 @@ export default function Page() {
 
     setText("");
   }
+
+  // for audio start recording
+  async function startRecording() {
+    try {
+      console.log("Requesting mic permission...");
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("Your browser does not support audio recording");
+        return;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
+
+      console.log("Mic access granted");
+
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm",
+        });
+
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        sendMessage({
+          type: "audio",
+          content: { url: audioUrl },
+        });
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Mic error:", err);
+      alert(err.message || "Microphone permission denied");
+    }
+  }
+
+  // for audio stop recording
+  function stopRecording() {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+  }
+
+  // for open files
+  function openFilePicker() {
+    fileInputRef.current?.click();
+  }
+
+  function handleFileSelect(e) {
+    const files = Array.from(e.target.files);
+
+    setSelectedFiles((prev) => [...prev, ...files]);
+    e.target.value = "";
+  }
+
+  function handleSendAll() {
+    if (!text.trim() && selectedFiles.length === 0) return;
+
+    const filesToSend = [...selectedFiles];
+    const textToSend = text.trim();
+
+    // clear UI
+    setText("");
+    setSelectedFiles([]);
+
+    // send text 
+    if (textToSend) {
+      sendMessage({
+        type: "text",
+        content: {
+          text: textToSend,
+        },
+      });
+    }
+
+    // send files
+    filesToSend.forEach((file) => {
+      const fileType = getFileType(file);
+      const fileUrl = URL.createObjectURL(file);
+
+      sendMessage({
+        type: fileType,
+        content: {
+          url: fileUrl,
+          name: file.name,
+          size: file.size,
+          mimeType: file.type,
+        },
+      });
+    });
+  }
+
+  function getFileType(file) {
+    if (file.type.startsWith("image/")) return "image";
+    if (file.type.startsWith("video/")) return "video";
+    if (file.type.startsWith("audio/")) return "audio";
+    return "file";
+  }
+
+  const imageFiles = selectedFiles.filter((f) => f.type.startsWith("image/"));
+
+  const otherFiles = selectedFiles.filter((f) => !f.type.startsWith("image/"));
 
   // for group add/remove/leave message
   function sendSystemMessage({ subtype, content, meta = {} }) {
@@ -536,6 +627,17 @@ export default function Page() {
           otherUserDetails={otherUserDetails}
           isOnline={isOnline}
           lastSeenText={lastSeenText}
+          isRecording={isRecording}
+          stopRecording={stopRecording}
+          startRecording={startRecording}
+          openFilePicker={openFilePicker}
+          selectedFiles={selectedFiles}
+          handleSendAll={handleSendAll}
+          fileInputRef={fileInputRef}
+          handleFileSelect={handleFileSelect}
+          setSelectedFiles={setSelectedFiles}
+          imageFiles={imageFiles}
+          otherFiles={otherFiles}
         />
       </div>
     </div>

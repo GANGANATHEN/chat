@@ -1,4 +1,4 @@
-import { Check, CheckCheck, Info, File } from "lucide-react";
+import { Check, CheckCheck, Info } from "lucide-react";
 import MessageContent from "./MessageContent";
 
 export default function MessageBubble({

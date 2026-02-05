@@ -165,15 +165,18 @@ export function chatReducer(state, action) {
       const chats = state.chats.map((c) => {
         if (c.id !== state.activeChatId) return c;
 
-        const MAX_MESSAGES = 30;
+        const MAX_MESSAGES = 7;
 
         // add new message
         const updatedMessages = [...c.messages, action.payload];
 
         // separate system & normal messages
-        const systemMessages = updatedMessages.filter(
-          (m) => m.type === "system",
-        );
+        const systemMessages = updatedMessages.filter((m) => {
+          m.type === "system" &&
+            (m.subtype === "add" ||
+              m.subtype === "remove" ||
+              m.subtype === "leave");
+        });
 
         const normalMessages = updatedMessages.filter(
           (m) => m.type !== "system",
