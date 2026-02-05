@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useReducer, useState, useMemo } from "react";
+import { useEffect, useReducer, useState, useMemo, useRef } from "react";
 import { chatReducer } from "../store/chatReducer";
 import { uid, loadLocal, loadSession } from "../utils/storage";
 import ChatWindow from "../components/ChatWindow";
@@ -40,6 +40,11 @@ export default function Page() {
   const [showPrompt, setShowPrompt] = useState(false);
   // for message
   const [text, setText] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [audioChunks, setAudioChunks] = useState([]);
+  const fileInputRef = useRef(null);
+  const imageInputRef = useRef(null);
   // console.log(selectedUser);
 
   /* -------------------- INIT -------------------- */
@@ -261,27 +266,65 @@ export default function Page() {
   }
 
   // for send message
-  function sendMessage() {
-    if (!text || !state.activeChatId) return;
+  // function sendMessage() {
+  //   if (!text || !state.activeChatId) return;
+
+  //   dispatch({
+  //     type: "SEND_MESSAGE",
+  //     payload: {
+  //       id: uid(),
+  //       type: "text",
+  //       sender: {
+  //         id: state.currentUser.id,
+  //         name: state.currentUser.name,
+  //       },
+  //       text,
+  //       createdAt: Date.now(),
+  //       // readBy: [state.currentUser.id],
+  //       readBy: [
+  //         {
+  //           userId: state.currentUser.id,
+  //           readAt: Date.now(),
+  //         },
+  //       ],
+  //     },
+  //   });
+
+  //   setText("");
+  // }
+
+  function sendMessage({ type, content = {}, meta = {} }) {
+    if (!state.activeChatId) return;
 
     dispatch({
       type: "SEND_MESSAGE",
       payload: {
         id: uid(),
-        type: "text",
+        chatId: state.activeChatId,
+
+        type,
+
         sender: {
           id: state.currentUser.id,
           name: state.currentUser.name,
         },
-        text,
+
+        content, // text / image / audio / file
+        meta, // duration, size, etc
+
         createdAt: Date.now(),
-        // readBy: [state.currentUser.id],
-        readBy: [
-          {
-            userId: state.currentUser.id,
-            readAt: Date.now(),
-          },
-        ],
+        readBy: [{ userId: state.currentUser.id, readAt: Date.now() }],
+      },
+    });
+  }
+
+  function handleSendText() {
+    if (!text.trim()) return;
+
+    sendMessage({
+      type: "text",
+      content: {
+        text: text.trim(),
       },
     });
 
@@ -289,15 +332,20 @@ export default function Page() {
   }
 
   // for group add/remove/leave message
-  function sendSystemMessage({ type, text, meta = {} }) {
+  function sendSystemMessage({ subtype, content, meta = {} }) {
     if (!state.activeChatId) return;
 
     dispatch({
       type: "SEND_MESSAGE",
       payload: {
         id: uid(),
-        type,
-        text,
+        type: "system",
+        subtype, // add | remove | leave
+        sender: {
+          id: state.currentUser.id,
+          name: state.currentUser.name,
+        },
+        content, // { text: "..." }
         meta,
         createdAt: Date.now(),
       },
@@ -460,9 +508,11 @@ export default function Page() {
         />
         <ChatWindow
           chat={activeChat}
+          state={state}
           currentUser={state.currentUser}
           text={text}
           setText={setText}
+          handleSendText={handleSendText}
           sendMessage={sendMessage}
           profileOpen={profileOpen}
           profileUser={profileUser}

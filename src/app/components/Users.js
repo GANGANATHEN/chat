@@ -47,7 +47,7 @@ const Users = ({ currentUser, openPrivateChat, onClose, isMobile }) => {
               return a.id.localeCompare(b.id);
             })
             .map((u) => {
-              console.log(u.lastSeen);
+              {/* console.log(u.lastSeen); */}
               return (
                 <div key={u.id} className="py-1">
                   <div

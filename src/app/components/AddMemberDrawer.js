@@ -4,15 +4,17 @@ import { loadLocal } from "../utils/storage";
 
 export default function AddMemberDrawer({
   chat,
+  state,
   onAdd,
   onClose,
   currentUser,
   addedUser,
   setAddedUser,
-   sendSystemMessage
+  sendSystemMessage,
 }) {
   const allUsers = loadLocal("users", []);
   const [query, setQuery] = useState("");
+  const [error, setError] = useState(null);
 
   const filteredUsers = useMemo(() => {
     return allUsers
@@ -23,6 +25,45 @@ export default function AddMemberDrawer({
       )
       .map((u) => ({ id: u.id, name: u.name }));
   }, [query, allUsers, chat.members]);
+
+  function isUserAlreadyInGroup(userId) {
+    const chat = state.chats.find((c) => c.id === state.activeChatId);
+
+    if (!chat) return false;
+
+    return chat.members.some((m) => m.id === userId);
+  }
+
+  function handleAddUser(u) {
+    if (isUserAlreadyInGroup(u.id)) {
+      setError(`${u.name} is already in the group`);
+      setTimeout(() => setError(null), 2000);
+      return;
+    }
+
+    onAdd({
+      id: u.id,
+      name: u.name,
+      addername: currentUser.name,
+    });
+
+    setAddedUser(u.name);
+
+    sendSystemMessage({
+      subtype: "add",
+      content: {
+        text: `${u.name} was added by ${currentUser.name}`,
+      },
+      meta: {
+        userId: u.id,
+        userName: u.name,
+        addedBy: currentUser.id,
+        addedByName: currentUser.name,
+      },
+    });
+
+    setTimeout(() => setAddedUser(null), 2000);
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-end z-50">
@@ -71,27 +112,7 @@ export default function AddMemberDrawer({
                 </div>
 
                 <button
-                  onClick={() => {
-                    onAdd({
-                      id: u.id,
-                      name: u.name,
-                      addername: currentUser.name,
-                    });
-
-                    // show message
-                    setAddedUser(u.name);
-                    sendSystemMessage({
-                      type: "add",
-                      text: `${u.name} was added by ${currentUser.name}`,
-                      meta: {
-                        userId: u.id,
-                        addedBy: currentUser.id,
-                      },
-                    });
-
-                    // auto hide after 2s
-                    setTimeout(() => setAddedUser(null), 2000);
-                  }}
+                  onClick={() => handleAddUser(u)}
                   className="text-indigo-400 hover:text-indigo-300"
                   title="Add user"
                 >
@@ -101,6 +122,11 @@ export default function AddMemberDrawer({
             );
           })}
         </div>
+        {error && (
+          <p className="font-medium mt-3 text-sm text-orange-500 text-center">
+            {error}
+          </p>
+        )}
 
         {addedUser && (
           <p className="font-medium mt-3 text-sm text-lime-300 text-center">

@@ -4,7 +4,9 @@ import AddMemberDrawer from "./AddMemberDrawer";
 
 export default function GroupProfile({
   chat,
+  state,
   onClose,
+  sendMessage,
   onRemoveMember,
   onAddMember,
   currentUser,
@@ -18,6 +20,51 @@ export default function GroupProfile({
   sendSystemMessage,
 }) {
   const [addOpen, setAddOpen] = useState(false);
+  const [error, setError] = useState(null);
+
+  function handleMemberAction(m, actionType) {
+    const isInGroup = state.chats
+      .find((c) => c.id === state.activeChatId)
+      ?.members.some((mem) => mem.id === m.id);
+
+    if (!isInGroup) {
+      setError(`${m.name} is already not in the group`);
+      setTimeout(() => setError(null), 2000);
+      return;
+    }
+
+    // remove member
+    onRemoveMember(m.id);
+    setRemovedUser(m.name);
+    console.log(removedUser);
+    console.log(m.name);
+
+    if (actionType === "leave") {
+      sendSystemMessage({
+        subtype: "leave",
+        content: {
+          text: `${m.name} left the group`,
+        },
+        meta: {
+          userId: m.id,
+        },
+      });
+    }
+
+    if (actionType === "remove") {
+      sendSystemMessage({
+        subtype: "remove",
+        content: {
+          text: `${m.name} was removed by ${currentUser.name}`,
+        },
+        meta: {
+          userId: m.id,
+          removedBy: currentUser.id,
+          removedByName: currentUser.name,
+        },
+      });
+    }
+  }
 
   // console.log(chat.members.some((m) => m.id === currentUser.id))
 
@@ -80,26 +127,25 @@ export default function GroupProfile({
                 const isAdmin = chat.admin === currentUser.id;
                 const isMe = currentUser.id === m.id;
 
-                {
-                  /* const showRemoveButton =
-                  (isAdmin && !isMe) || // admin --> remove others
-                  (!isAdmin && isMe); // member --> leave self */
-                }
-                const isLeaving = isMe && !isAdmin; // member leaving self
-                const isRemoving = isAdmin && !isMe; // admin removing others
+                const actionType =
+                  isMe && !isAdmin
+                    ? "leave"
+                    : isAdmin && !isMe
+                      ? "remove"
+                      : null;
 
                 return (
                   <div
                     key={m.id}
                     className="group flex items-center justify-between 
-                    bg-gray-900 hover:bg-gray-800 transition rounded-lg px-3 py-2"
+      bg-gray-900 hover:bg-gray-800 transition rounded-lg px-3 py-2"
                   >
                     {/* Avatar + Name */}
                     <div className="flex items-center gap-3">
                       <div
                         onClick={() => setSelectedUser(m)}
                         className="cursor-pointer h-9 w-9 rounded-full bg-indigo-500 flex 
-                        items-center justify-center text-sm font-semibold text-white"
+          items-center justify-center text-sm font-semibold text-white"
                       >
                         {(userMap[m?.id]?.name?.[0] || "?").toUpperCase()}
                       </div>
@@ -107,64 +153,45 @@ export default function GroupProfile({
                       <span className="text-sm text-white">
                         {userMap[m?.id]?.name || "Unknown"}
                       </span>
+
+                      {/* ADMIN BADGE */}
+                      {chat.admin === m.id && (
+                        <span className="ml-2 text-xs text-lime-400 font-medium">
+                          Admin
+                        </span>
+                      )}
                     </div>
 
-                    {/* Remove / Leave */}
-                    {(isLeaving || isRemoving) && (
+                    {/* Action button */}
+                    {actionType && (
                       <button
-                        onClick={() => {
-                          onRemoveMember(m.id);
-
-                          // SYSTEM MESSAGE LOGIC
-                          if (isLeaving) {
-                            sendSystemMessage({
-                              type: "leave",
-                              text: `${m.name} left the group`,
-                              meta: {
-                                userId: m.id,
-                              },
-                            });
-                          }
-
-                          if (isRemoving) {
-                            sendSystemMessage({
-                              type: "remove",
-                              text: `${m.name} was removed by ${currentUser.name}`,
-                              meta: {
-                                userId: m.id,
-                                removedBy: currentUser.id,
-                              },
-                            });
-                          }
-                        }}
-                        className="cursor-pointer opacity-0 group-hover:opacity-100 
-    transition flex items-center gap-1 text-red-400 hover:text-red-300"
-                        title={isMe ? "Leave group" : "Remove member"}
+                        onClick={() => handleMemberAction(m, actionType)}
+                        className="cursor-pointer text-red-400 opacity-0 group-hover:opacity-100 transition"
+                        title={
+                          actionType === "leave"
+                            ? "Leave group"
+                            : "Remove member"
+                        }
                       >
-                        <Minus size={16} />
-                        <span className="text-xs">
-                          {isMe ? "Leave" : "Remove"}
-                        </span>
+                        {actionType === "leave" ? "Leave" : "Remove"}
                       </button>
-                    )}
-
-                    {/* Admin badge */}
-                    {!isRemoving && chat.admin === m.id && (
-                      <span className="text-xs text-lime-300 font-medium">
-                        Admin
-                      </span>
                     )}
                   </div>
                 );
               })}
           </div>
         </div>
+        {error && (
+          <p className="font-medium mt-3 text-sm text-orange-500 text-center">
+            {error}
+          </p>
+        )}
 
         {removedUser && (
           <p className="font-medium text-red-500 text-center text-sm mb-3">
             {isCurrentUserRemoved
               ? "You left the group"
-              : `${removedUser.name} was removed`}
+              : `${removedUser} was removed`}
           </p>
         )}
 
@@ -190,12 +217,14 @@ export default function GroupProfile({
       {addOpen && (
         <AddMemberDrawer
           chat={chat}
+          state={state}
           onAdd={onAddMember}
           onClose={() => setAddOpen(false)}
           currentUser={currentUser}
           addedUser={addedUser}
           setAddedUser={setAddedUser}
           sendSystemMessage={sendSystemMessage}
+          sendMessage={sendMessage}
         />
       )}
     </div>

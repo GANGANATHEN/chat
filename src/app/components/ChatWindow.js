@@ -9,22 +9,20 @@ import {
   SendHorizontal,
   Users,
   User,
-  Eye,
-  EyeOff,
-  CheckCheck,
-  Check,
-  Info,
 } from "lucide-react";
 import ProfileModal from "./ProfilePopub";
 import SystemMessage from "./SystemMessage";
 import MessageInfoModal from "./MessageInfoModel";
+import MessageBubble from "./MessageBubble";
 
 export default function ChatWindow({
   chat,
+  state,
   currentUser,
   text,
   setText,
   sendMessage,
+  handleSendText,
   addUsers,
   removeUsers,
   profileOpen,
@@ -111,6 +109,7 @@ export default function ChatWindow({
             {profileUser.type === "group" ? (
               <GroupProfile
                 chat={profileUser}
+                state={state}
                 userMap={userMap}
                 onClose={() => setProfileOpen(false)}
                 onAddMember={(userId) => addUsers(profileUser.id, userId)}
@@ -121,6 +120,7 @@ export default function ChatWindow({
                 setRemovedUser={setRemovedUser}
                 addedUser={addedUser}
                 setAddedUser={setAddedUser}
+                sendMessage={sendMessage}
                 sendSystemMessage={sendSystemMessage}
               />
             ) : (
@@ -152,7 +152,7 @@ export default function ChatWindow({
         </div>
       ) : (
         <>
-          <div className="flex-1 min-h-0 p-4 overflow-y-auto custom-scrollbar space-y-3">
+          {/* <div className="flex-1 min-h-0 p-4 overflow-y-auto custom-scrollbar space-y-3">
             {chat.messages.map((m) => {
               const isMe = m.sender?.id === currentUser.id;
               let isRead = false;
@@ -175,7 +175,7 @@ export default function ChatWindow({
                 }
               }
 
-              // TEXT MESSAGE
+              TEXT MESSAGE
               if (m.type === "text") {
                 return (
                   <div
@@ -211,12 +211,12 @@ export default function ChatWindow({
                         ))}
                     </div>
 
-                    {m.text}
+                    {m.content?.text}
                   </div>
                 );
               }
 
-              // SYSTEM MESSAGE (add / remove / leave)
+              SYSTEM MESSAGE (add / remove / leave)
               if (["add", "remove", "leave"].includes(m.type)) {
                 const colorMap = {
                   add: "text-lime-400",
@@ -229,7 +229,7 @@ export default function ChatWindow({
                     key={m.id}
                     className={`text-xs text-center my-2 ${colorMap[m.type]}`}
                   >
-                    {m.text}
+                    {m.content.text}
                     <span className="ml-2 text-[10px] text-gray-400">
                       {new Date(m.createdAt).toLocaleTimeString()}
                     </span>
@@ -241,7 +241,48 @@ export default function ChatWindow({
             })}
 
             <div ref={bottomRef} />
+          </div> */}
+          <div className="flex-1 min-h-0 p-4 overflow-y-auto space-y-3">
+            {chat.messages.map((m) => {
+              if (m.type="system") {
+                return <SystemMessage key={m.id} m={m} />;
+              }
+
+              const isMe = m.sender?.id === currentUser.id;
+              let isRead = false;
+
+              if (isMe) {
+                if (chat.type === "private") {
+                  const otherId = chat.members.find(
+                    (u) => u.id !== currentUser.id,
+                  )?.id;
+                  isRead = m.readBy?.includes(otherId);
+                } else {
+                  const others = chat.members.filter(
+                    (u) => u.id !== currentUser.id,
+                  );
+                  isRead = others.every((u) => m.readBy?.includes(u.id));
+                }
+              }
+
+              return (
+                <MessageBubble
+                  key={m.id}
+                  m={m}
+                  isMe={isMe}
+                  chat={chat}
+                  isRead={isRead}
+                  currentUser={currentUser}
+                  userMap={userMap}
+                  setSelectedMessage={setSelectedMessage}
+                  getSenderName={getSenderName}
+                />
+              );
+            })}
+
+            <div ref={bottomRef} />
           </div>
+
           <MessageInfoModal
             message={selectedMessage}
             chat={chat}
@@ -252,12 +293,12 @@ export default function ChatWindow({
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              sendMessage();
+              handleSendText();
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                sendMessage();
+                handleSendText();
               }
             }}
             className="px-3 py-3"

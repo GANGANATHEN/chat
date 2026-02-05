@@ -1,18 +1,18 @@
-export default function SystemMessage({ children, type = "info" }) {
+export default function SystemMessage({ m }) {
+  const colorMap = {
+    add: "text-lime-400",
+    remove: "text-red-400",
+    leave: "text-yellow-400",
+  };
+
+  const color = colorMap[m.subtype] || "text-gray-400";
+
   return (
-    <div className="flex justify-center my-2">
-      <div
-        className={`px-3 py-1 text-xs rounded-full
-          ${
-            type === "add"
-              ? "bg-green-500/10 text-green-400"
-              : type === "remove"
-                ? "bg-red-500/10 text-red-400"
-                : "bg-gray-500/10 text-gray-300"
-          }`}
-      >
-        {children}
-      </div>
+    <div className={`text-xs text-center my-2 ${color}`}>
+      {m.content?.text}
+      <span className="ml-2 text-[10px] text-gray-500">
+        {new Date(m.createdAt).toLocaleTimeString()}
+      </span>
     </div>
   );
 }
