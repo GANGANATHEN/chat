@@ -27,7 +27,7 @@ export default function MessageBubble({
           </span>
 
           <div className="flex items-center gap-1">
-            {/* <span className="text-[10px] text-gray-400">{time}</span> */}
+            <span className="text-[10px] text-gray-400">{time}</span>
 
             {isMe &&
               (chat.type === "private" ? (

@@ -146,7 +146,7 @@ export default function ChatWindow({
         <>
           <div className="flex-1 min-h-0 p-4 overflow-y-auto custom-scrollbar space-y-3">
             {chat.messages.map((m) => {
-              if ((m.type = "system")) {
+              if (m?.type === "system") {
                 return <SystemMessage key={m.id} m={m} />;
               }
 
@@ -158,7 +158,7 @@ export default function ChatWindow({
                   const otherId = chat.members.find(
                     (u) => u.id !== currentUser.id,
                   )?.id;
-                  isRead = m.readBy?.includes(otherId);
+                  isRead = m.readBy?.some((r) => r.userId === otherId);
                 } else {
                   const others = chat.members.filter(
                     (u) => u.id !== currentUser.id,

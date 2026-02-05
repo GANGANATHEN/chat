@@ -192,6 +192,14 @@ export default function Page() {
 
     if (chat) {
       dispatch({ type: "SET_ACTIVE_CHAT", payload: chat.id });
+
+      dispatch({
+        type: "MARK_CHAT_AS_READ",
+        payload: {
+          chatId: chat.id,
+          userId: state.currentUser.id,
+        },
+      });
     } else {
       dispatch({
         type: "CREATE_CHAT",
@@ -301,9 +309,7 @@ export default function Page() {
       payload: {
         id: uid(),
         chatId: state.activeChatId,
-
         type,
-
         sender: {
           id: state.currentUser.id,
           name: state.currentUser.name,

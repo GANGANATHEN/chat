@@ -206,6 +206,7 @@ export function chatReducer(state, action) {
           return {
             ...chat,
             messages: chat.messages.map((m) => {
+              if (m.type === "system") return m;
               // normalize existing readBy
               const normalized = (m.readBy || []).map((r) =>
                 typeof r === "string" ? { userId: r, readAt: null } : r,
