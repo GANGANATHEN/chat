@@ -1,4 +1,4 @@
-import { X, Minus, UserPlus, Users } from "lucide-react";
+import { X, UserPlus, Users } from "lucide-react";
 import { useState } from "react";
 import AddMemberDrawer from "./AddMemberDrawer";
 
@@ -14,13 +14,11 @@ export default function GroupProfile({
   userMap,
   addedUser,
   setAddedUser,
-  removedUser,
-  setRemovedUser,
-  isCurrentUserRemoved,
   sendSystemMessage,
 }) {
   const [addOpen, setAddOpen] = useState(false);
   const [error, setError] = useState(null);
+  const [uiRemovedUser, setUiRemovedUser] = useState(null);
 
   function handleMemberAction(m, actionType) {
     const isInGroup = state.chats
@@ -33,37 +31,29 @@ export default function GroupProfile({
       return;
     }
 
-    // remove member
+    // 🔥 UI feedback FIRST
+    setUiRemovedUser({
+      id: m.id,
+      name: m.name,
+    });
+
+    // 🔥 Global update
     onRemoveMember(m.id);
-    setRemovedUser(m.name);
-    console.log(removedUser);
-    console.log(m.name);
 
-    if (actionType === "leave") {
-      sendSystemMessage({
-        subtype: "leave",
-        content: {
-          text: `${m.name} left the group`,
-        },
-        meta: {
-          userId: m.id,
-        },
-      });
-    }
+    // system message
+    sendSystemMessage({
+      subtype: actionType,
+      content: {
+        text:
+          actionType === "leave"
+            ? `${m.name} left the group`
+            : `${m.name} was removed by ${currentUser.name}`,
+      },
+      meta: { userId: m.id },
+    });
 
-    if (actionType === "remove") {
-      sendSystemMessage({
-        subtype: "remove",
-        content: {
-          text: `${m.name} was removed by ${currentUser.name}`,
-        },
-        meta: {
-          userId: m.id,
-          removedBy: currentUser.id,
-          removedByName: currentUser.name,
-        },
-      });
-    }
+    // auto-hide message
+    setTimeout(() => setUiRemovedUser(null), 2000);
   }
 
   // console.log(chat.members.some((m) => m.id === currentUser.id))
@@ -187,11 +177,11 @@ export default function GroupProfile({
           </p>
         )}
 
-        {removedUser && (
+        {uiRemovedUser && (
           <p className="font-medium text-red-500 text-center text-sm mb-3">
-            {isCurrentUserRemoved
+            {uiRemovedUser.id === currentUser.id
               ? "You left the group"
-              : `${removedUser} was removed`}
+              : `${uiRemovedUser.name} was removed`}
           </p>
         )}
 

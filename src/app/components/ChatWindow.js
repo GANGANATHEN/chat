@@ -4,7 +4,7 @@ import GroupProfile from "../components/GroupProfile";
 import { useState, useEffect, useRef } from "react";
 import {
   Images,
-  MicVocal,
+  AudioLines,
   FilePlus,
   SendHorizontal,
   Users,
@@ -42,13 +42,7 @@ export default function ChatWindow({
   // ref for new messages
   const bottomRef = useRef(null);
   const [addedUser, setAddedUser] = useState(null);
-  const [removedUser, setRemovedUser] = useState(null);
-  // for message seen/Unseen
-  const [readCount, setReadCount] = useState(0);
   const [selectedMessage, setSelectedMessage] = useState(null);
-
-  const isCurrentUserRemoved = removedUser?.id === currentUser?.id;
-  // console.log(removedUser);
 
   // scroll to bottom on new message
   useEffect(() => {
@@ -116,8 +110,6 @@ export default function ChatWindow({
                 onRemoveMember={(userId) => removeUsers(profileUser.id, userId)}
                 currentUser={currentUser}
                 setSelectedUser={setSelectedUser}
-                isCurrentUserRemoved={isCurrentUserRemoved}
-                setRemovedUser={setRemovedUser}
                 addedUser={addedUser}
                 setAddedUser={setAddedUser}
                 sendMessage={sendMessage}
@@ -152,99 +144,9 @@ export default function ChatWindow({
         </div>
       ) : (
         <>
-          {/* <div className="flex-1 min-h-0 p-4 overflow-y-auto custom-scrollbar space-y-3">
+          <div className="flex-1 min-h-0 p-4 overflow-y-auto custom-scrollbar space-y-3">
             {chat.messages.map((m) => {
-              const isMe = m.sender?.id === currentUser.id;
-              let isRead = false;
-
-              if (isMe) {
-                if (chat.type === "private") {
-                  const otherUserId = chat.members.find(
-                    (u) => u.id !== currentUser.id,
-                  )?.id;
-
-                  isRead = m.readBy?.includes(otherUserId);
-                }
-
-                if (chat.type === "group") {
-                  const otherMembers = chat.members.filter(
-                    (u) => u.id !== currentUser.id,
-                  );
-
-                  isRead = otherMembers.every((u) => m.readBy?.includes(u.id));
-                }
-              }
-
-              TEXT MESSAGE
-              if (m.type === "text") {
-                return (
-                  <div
-                    key={m.id}
-                    className={`w-fit px-3 py-2 rounded-lg text-sm ${
-                      isMe
-                        ? "ml-auto bg-blue-600 text-white"
-                        : "bg-gray-700 text-gray-100"
-                    }`}
-                  >
-                    <div className="flex gap-x-4 justify-between items-center mb-1">
-                      <span className="text-xs font-semibold text-gray-300">
-                        {isMe ? "You" : getSenderName(m, currentUser, userMap)}
-                      </span>
-                      <span className="text-[10px] text-gray-400">
-                        {new Date(m.createdAt).toLocaleTimeString()}
-                      </span>
-                      {isMe &&
-                        (chat.type === "private" ? (
-                          isRead ? (
-                            <CheckCheck size={14} className="text-green-400" />
-                          ) : (
-                            <Check size={14} className="text-gray-500" />
-                          )
-                        ) : (
-                          <button
-                            onClick={() => setSelectedMessage(m)}
-                            className="p-0.5 rounded hover:bg-gray-600"
-                            title="Message info"
-                          >
-                            <Info size={12} className="text-gray-400" />
-                          </button>
-                        ))}
-                    </div>
-
-                    {m.content?.text}
-                  </div>
-                );
-              }
-
-              SYSTEM MESSAGE (add / remove / leave)
-              if (["add", "remove", "leave"].includes(m.type)) {
-                const colorMap = {
-                  add: "text-lime-400",
-                  remove: "text-red-400",
-                  leave: "text-yellow-400",
-                };
-
-                return (
-                  <div
-                    key={m.id}
-                    className={`text-xs text-center my-2 ${colorMap[m.type]}`}
-                  >
-                    {m.content.text}
-                    <span className="ml-2 text-[10px] text-gray-400">
-                      {new Date(m.createdAt).toLocaleTimeString()}
-                    </span>
-                  </div>
-                );
-              }
-
-              return null;
-            })}
-
-            <div ref={bottomRef} />
-          </div> */}
-          <div className="flex-1 min-h-0 p-4 overflow-y-auto space-y-3">
-            {chat.messages.map((m) => {
-              if (m.type="system") {
+              if ((m.type = "system")) {
                 return <SystemMessage key={m.id} m={m} />;
               }
 
@@ -331,7 +233,7 @@ export default function ChatWindow({
                   className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-700 transition"
                   title="Voice message"
                 >
-                  <MicVocal size={18} />
+                  <AudioLines size={18} />
                 </button>
               </div>
 
