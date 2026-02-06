@@ -530,6 +530,15 @@ export default function Page() {
     ? "Online"
     : `Last seen ${formatLastSeen(otherUserDetails?.lastSeen)}`;
 
+  function onDeleteGroup(chatId) {
+    dispatch({
+      type: "DELETE_GROUP",
+      payload: { chatId },
+    });
+
+    setProfileOpen(false);
+  }
+
   // logout
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
@@ -656,6 +665,7 @@ export default function Page() {
           imageFiles={imageFiles}
           otherFiles={otherFiles}
           onUserRoleChange={onUserRoleChange}
+          onDeleteGroup={onDeleteGroup}
         />
       </div>
     </div>

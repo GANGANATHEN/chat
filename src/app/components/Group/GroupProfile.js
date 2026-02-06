@@ -16,12 +16,13 @@ export default function GroupProfile({
   setAddedUser,
   sendSystemMessage,
   onUserRoleChange,
+  onDeleteGroup,
 }) {
   const [addOpen, setAddOpen] = useState(false);
   const [error, setError] = useState(null);
   const [uiRemovedUser, setUiRemovedUser] = useState(null);
   const [roleEditUser, setRoleEditUser] = useState(null);
-  const [ShowDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [ShowDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   function handleMemberAction(m, actionType) {
     const isInGroup = state.chats
@@ -87,6 +88,7 @@ export default function GroupProfile({
     if (!isCreator) return;
 
     onDeleteGroup(chat.id);
+    console.log("delete button clicked")
     setShowDeleteConfirm(false);
   }
 
@@ -313,9 +315,12 @@ export default function GroupProfile({
           </button>
           <button
             disabled={!isCreator}
-            onClick={() => setShowDeleteConfirm(true)}
+            onClick={() => {
+              handleDeleteGroup();
+              setShowDeleteConfirm(true);
+            }}
             className={`w-full mt-4 px-4 py-2 rounded-lg text-sm font-semibold
-    transition
+    transition cursor-pointer
     ${
       isCreator
         ? "bg-red-600 hover:bg-red-700 text-white"
