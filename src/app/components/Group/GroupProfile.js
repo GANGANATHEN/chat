@@ -15,10 +15,13 @@ export default function GroupProfile({
   addedUser,
   setAddedUser,
   sendSystemMessage,
+  onUserRoleChange,
 }) {
   const [addOpen, setAddOpen] = useState(false);
   const [error, setError] = useState(null);
   const [uiRemovedUser, setUiRemovedUser] = useState(null);
+  const [roleEditUser, setRoleEditUser] = useState(null);
+  const [ShowDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   function handleMemberAction(m, actionType) {
     const isInGroup = state.chats
@@ -31,13 +34,13 @@ export default function GroupProfile({
       return;
     }
 
-    // 🔥 UI feedback FIRST
+    // UI feedback FIRST
     setUiRemovedUser({
       id: m.id,
       name: m.name,
     });
 
-    // 🔥 Global update
+    // Global update
     onRemoveMember(m.id);
 
     // system message
@@ -54,6 +57,37 @@ export default function GroupProfile({
 
     // auto-hide message
     setTimeout(() => setUiRemovedUser(null), 2000);
+  }
+
+  function updateUserRole(userId, newRole) {
+    if (!roleEditUser) return;
+
+    // creator role change not allowed
+    if (chat.admin === userId) return;
+
+    // only creator can edit
+    if (chat.admin !== currentUser.id) return;
+
+    // just call parent handler
+    onUserRoleChange({
+      chatId: chat.id,
+      userId,
+      newRole,
+      userName: userMap[userId]?.name,
+    });
+
+    setRoleEditUser(null);
+  }
+
+  const currentMember = chat.members.find((m) => m.id === currentUser.id);
+  const isCreator = currentUser.id === chat.admin;
+  const isAdmin = currentMember?.role === "admin";
+
+  function handleDeleteGroup() {
+    if (!isCreator) return;
+
+    onDeleteGroup(chat.id);
+    setShowDeleteConfirm(false);
   }
 
   // console.log(chat.members.some((m) => m.id === currentUser.id))
@@ -114,28 +148,44 @@ export default function GroupProfile({
                 );
               })
               .map((m) => {
-                const isAdmin = chat.admin === currentUser.id;
-                const isMe = currentUser.id === m.id;
+                const currentMember = chat.members.find(
+                  (u) => u.id === currentUser.id,
+                );
+                const isCurrentUserAdmin = currentMember?.role === "admin";
+                const isMe = m.id === currentUser.id;
+                const isCreator = chat.admin === m.id; // chat admin = creator
+                const isAdmin = m.role === "admin";
+                const isCurrentUserCreator = chat.admin === currentUser.id;
+                const canEditRole = isCurrentUserCreator && !isCreator;
 
-                const actionType =
-                  isMe && !isAdmin
-                    ? "leave"
-                    : isAdmin && !isMe
-                      ? "remove"
-                      : null;
+                let actionType = null;
+
+                // Leave → anyone except creator
+                if (isMe && !isCreator) {
+                  actionType = "leave";
+                }
+
+                // Remove → creator OR admin can remove others (not creator)
+                else if (
+                  !isMe &&
+                  !isCreator && // don't allow removing creator
+                  (isCreator || isCurrentUserAdmin)
+                ) {
+                  actionType = "remove";
+                }
 
                 return (
                   <div
                     key={m.id}
                     className="group flex items-center justify-between 
-      bg-gray-900 hover:bg-gray-800 transition rounded-lg px-3 py-2"
+                     bg-gray-900 hover:bg-gray-800 transition rounded-lg px-3 py-2"
                   >
-                    {/* Avatar + Name */}
+                    {/* Avatar + Name + Role */}
                     <div className="flex items-center gap-3">
                       <div
                         onClick={() => setSelectedUser(m)}
                         className="cursor-pointer h-9 w-9 rounded-full bg-indigo-500 flex 
-          items-center justify-center text-sm font-semibold text-white"
+                         items-center justify-center text-sm font-semibold text-white"
                       >
                         {(userMap[m?.id]?.name?.[0] || "?").toUpperCase()}
                       </div>
@@ -144,11 +194,72 @@ export default function GroupProfile({
                         {userMap[m?.id]?.name || "Unknown"}
                       </span>
 
-                      {/* ADMIN BADGE */}
-                      {chat.admin === m.id && (
-                        <span className="ml-2 text-xs text-lime-400 font-medium">
-                          Admin
-                        </span>
+                      {/* Role Badge */}
+                      <span
+                        onClick={() => {
+                          if (!canEditRole) return;
+                          setRoleEditUser(m);
+                        }}
+                        className={`ml-2 px-2 py-0.5 text-[10px] font-semibold rounded-full shadow-sm 
+  uppercase tracking-wide
+  ${
+    isCreator
+      ? "bg-pink-500 text-white"
+      : m.role === "admin"
+        ? canEditRole
+          ? "bg-green-500 text-white cursor-pointer hover:opacity-80"
+          : "bg-green-500 text-white"
+        : canEditRole
+          ? "bg-gray-400 text-black cursor-pointer hover:opacity-80"
+          : "bg-gray-400 text-black"
+  }`}
+                        title={canEditRole ? "Change role" : m.role}
+                      >
+                        {isCreator
+                          ? "Creator"
+                          : m.role === "admin"
+                            ? "Admin"
+                            : "Member"}
+                      </span>
+
+                      {roleEditUser && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                          <div className="w-[90%] max-w-sm rounded-xl bg-gray-800 p-4 shadow-xl">
+                            <p className="text-sm text-white font-medium mb-3">
+                              Change role for{" "}
+                              <span className="text-indigo-400">
+                                {userMap[roleEditUser.id]?.name}
+                              </span>
+                            </p>
+
+                            <button
+                              onClick={() =>
+                                updateUserRole(roleEditUser.id, "admin")
+                              }
+                              className="w-full rounded-lg px-3 py-2 text-sm text-left
+        bg-gray-700 hover:bg-gray-600 transition mb-2"
+                            >
+                              Make Admin
+                            </button>
+
+                            <button
+                              onClick={() =>
+                                updateUserRole(roleEditUser.id, "member")
+                              }
+                              className="w-full rounded-lg px-3 py-2 text-sm text-left
+        bg-gray-700 hover:bg-gray-600 transition"
+                            >
+                              Make Member
+                            </button>
+
+                            <button
+                              onClick={() => setRoleEditUser(null)}
+                              className="mt-3 w-full text-xs text-gray-400 hover:text-white"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
                       )}
                     </div>
 
@@ -157,11 +268,6 @@ export default function GroupProfile({
                       <button
                         onClick={() => handleMemberAction(m, actionType)}
                         className="cursor-pointer text-red-400 opacity-0 group-hover:opacity-100 transition"
-                        title={
-                          actionType === "leave"
-                            ? "Leave group"
-                            : "Remove member"
-                        }
                       >
                         {actionType === "leave" ? "Leave" : "Remove"}
                       </button>
@@ -188,17 +294,40 @@ export default function GroupProfile({
         {/* FOOTER */}
         <div className="p-4 border-t border-gray-800 bg-gray-950">
           <button
-            disabled={currentUser.id !== chat.admin}
+            disabled={!(isCreator || isAdmin)}
             onClick={() => setAddOpen(true)}
             className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 
             font-medium transition ${
-              currentUser.id !== chat.admin
+              !(isCreator || isAdmin)
                 ? "bg-gray-700 text-gray-400 cursor-not-allowed"
                 : "bg-indigo-600 hover:bg-indigo-500 text-white"
             }`}
+            title={
+              isCreator
+                ? "Add Group Members"
+                : "Only creator and Admin can Add Group Members"
+            }
           >
             <UserPlus size={18} />
             Add member
+          </button>
+          <button
+            disabled={!isCreator}
+            onClick={() => setShowDeleteConfirm(true)}
+            className={`w-full mt-4 px-4 py-2 rounded-lg text-sm font-semibold
+    transition
+    ${
+      isCreator
+        ? "bg-red-600 hover:bg-red-700 text-white"
+        : "bg-gray-700 text-gray-400 cursor-not-allowed"
+    }`}
+            title={
+              isCreator
+                ? "Delete this group permanently"
+                : "Only creator can delete this group"
+            }
+          >
+            Delete Group
           </button>
         </div>
       </div>

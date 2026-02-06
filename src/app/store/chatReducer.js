@@ -94,7 +94,7 @@ export function chatReducer(state, action) {
     }
 
     case "ADD_GROUP_MEMBER": {
-      const { chatId, user } = action.payload;
+      const { chatId, user, role } = action.payload;
 
       if (!user || typeof user !== "object") return state;
 
@@ -109,7 +109,7 @@ export function chatReducer(state, action) {
 
           return {
             ...chat,
-            members: [...chat.members, user],
+            members: [...chat.members, { ...user, role: role || "member" }],
           };
         }),
       };
@@ -127,6 +127,34 @@ export function chatReducer(state, action) {
                 members: chat.members.filter((m) => m.id !== userId),
               }
             : chat,
+        ),
+      };
+    }
+
+    case "CHANGE_USER_ROLE": {
+      const { chatId, userId, newRole, userName } = action.payload;
+
+      return {
+        ...state,
+        chats: state.chats.map((c) =>
+          c.id !== chatId
+            ? c
+            : {
+                ...c,
+                members: c.members.map((m) =>
+                  m.id === userId ? { ...m, role: newRole } : m,
+                ),
+                messages: [
+                  ...c.messages,
+                  {
+                    id: Date.now(),
+                    type: "system",
+                    subtype: "role",
+                    content: { text: `${userName} is now ${newRole}` },
+                    createdAt: Date.now(),
+                  },
+                ],
+              },
         ),
       };
     }
@@ -165,32 +193,25 @@ export function chatReducer(state, action) {
       const chats = state.chats.map((c) => {
         if (c.id !== state.activeChatId) return c;
 
-        const MAX_MESSAGES = 7;
+        const MAX_MESSAGES = 10; // total messages including system
 
         // add new message
         const updatedMessages = [...c.messages, action.payload];
 
-        // separate system & normal messages
-        const systemMessages = updatedMessages.filter((m) => {
-          m.type === "system" &&
-            (m.subtype === "add" ||
-              m.subtype === "remove" ||
-              m.subtype === "leave");
-        });
-
-        const normalMessages = updatedMessages.filter(
-          (m) => m.type !== "system",
+        // sort messages by timestamp
+        const sortedMessages = updatedMessages.sort(
+          (a, b) => a.createdAt - b.createdAt,
         );
 
-        // keep only last 30 normal messages
-        const limitedNormalMessages =
-          normalMessages.length > MAX_MESSAGES
-            ? normalMessages.slice(-MAX_MESSAGES)
-            : normalMessages;
+        // keep only last MAX_MESSAGES messages
+        const limitedMessages =
+          sortedMessages.length > MAX_MESSAGES
+            ? sortedMessages.slice(-MAX_MESSAGES)
+            : sortedMessages;
 
         return {
           ...c,
-          messages: [...systemMessages, ...limitedNormalMessages],
+          messages: limitedMessages,
         };
       });
 
@@ -209,7 +230,7 @@ export function chatReducer(state, action) {
           return {
             ...chat,
             messages: chat.messages.map((m) => {
-              if (m.type === "system") return m;
+              // if (m.type === "system") return m;
               // normalize existing readBy
               const normalized = (m.readBy || []).map((r) =>
                 typeof r === "string" ? { userId: r, readAt: null } : r,
@@ -233,6 +254,13 @@ export function chatReducer(state, action) {
 
     case "SYNC_CHATS":
       return { ...state, chats: action.payload };
+
+    case "DELETE_GROUP": {
+      const chats = state.chats.filter((c) => c.id !== action.payload.chatId);
+
+      saveLocal("chats", chats);
+      return { ...state, chats, activeChatId: null };
+    }
 
     default:
       return state;

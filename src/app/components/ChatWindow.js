@@ -50,6 +50,7 @@ export default function ChatWindow({
   setSelectedFiles,
   imageFiles,
   otherFiles,
+  onUserRoleChange
 }) {
   // ref for new messages
   const bottomRef = useRef(null);
@@ -139,6 +140,7 @@ export default function ChatWindow({
                 setAddedUser={setAddedUser}
                 sendMessage={sendMessage}
                 sendSystemMessage={sendSystemMessage}
+                onUserRoleChange={onUserRoleChange}
               />
             ) : (
               <UserProfile

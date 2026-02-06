@@ -228,7 +228,7 @@ export default function Page() {
     if (!name) return;
 
     const members = [
-      { id: state.currentUser.id, name: state.currentUser.name },
+      { id: state.currentUser.id, name: state.currentUser.name, role: "admin" },
     ];
     // loadLocal("users", []).map((u) => ({
     //   id: u.id,
@@ -390,7 +390,7 @@ export default function Page() {
     setText("");
     setSelectedFiles([]);
 
-    // send text 
+    // send text
     if (textToSend) {
       sendMessage({
         type: "text",
@@ -431,6 +431,7 @@ export default function Page() {
   // for group add/remove/leave message
   function sendSystemMessage({ subtype, content, meta = {} }) {
     if (!state.activeChatId) return;
+    console.log(subtype);
 
     dispatch({
       type: "SEND_MESSAGE",
@@ -443,8 +444,24 @@ export default function Page() {
           name: state.currentUser.name,
         },
         content, // { text: "..." }
+        readBy: [{ userId: state.currentUser.id, readAt: Date.now() }],
         meta,
         createdAt: Date.now(),
+      },
+    });
+  }
+
+  // for group users role
+  function onUserRoleChange({ chatId, userId, newRole, userName }) {
+    // update role in chat state
+    dispatch({
+      type: "CHANGE_USER_ROLE",
+      payload: {
+        chatId,
+        userId,
+        newRole,
+        userName,
+        by: state.currentUser.id,
       },
     });
   }
@@ -638,6 +655,7 @@ export default function Page() {
           setSelectedFiles={setSelectedFiles}
           imageFiles={imageFiles}
           otherFiles={otherFiles}
+          onUserRoleChange={onUserRoleChange}
         />
       </div>
     </div>
