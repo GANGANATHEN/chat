@@ -1,7 +1,11 @@
 import Image from "next/image";
 import React from "react";
+// useContext
+import { useChat } from "../../context/ChatContext";
 
-const Profile = ({ currentUser, openProfile }) => {
+const Profile = ({ openProfile }) => {
+  const { currentUser } = useChat();
+
   return (
     <header className="h-12 w-full bg-gray-900 border-b border-gray-700 flex items-center px-3 text-white">
       {/* Logo */}

@@ -17,42 +17,57 @@ import ProfileModal from "./Profile/ProfilePopub";
 import SystemMessage from "./Message/SystemMessage";
 import MessageInfoModal from "../components/Message/MessageInfoModel";
 import MessageBubble from "../components/Message/MessageBubble";
+// useContext
+import { useChat } from "../context/ChatContext";
 
 export default function ChatWindow({
-  chat,
-  state,
-  currentUser,
+  profileOpen,
+  setProfileOpen,
+  profileUser,
+  handleProfile,
+  selectedUser,
+  setSelectedUser,
+  getSenderName,
   text,
   setText,
-  sendMessage,
-  addUsers,
-  removeUsers,
-  profileOpen,
-  profileUser,
-  setProfileOpen,
-  handleProfile,
-  getSenderName,
-  userMap,
-  setSelectedUser,
-  selectedUser,
-  onLogout,
-  sendSystemMessage,
-  otherUserDetails,
-  isOnline,
-  lastSeenText,
-  isRecording,
-  stopRecording,
-  startRecording,
-  selectedFiles,
-  handleSendAll,
-  fileInputRef,
-  handleFileSelect,
-  setSelectedFiles,
-  imageFiles,
-  otherFiles,
-  onUserRoleChange,
-  onDeleteGroup
 }) {
+  const {
+    state,
+    chat,
+    currentUser,
+
+    // messaging
+    sendMessage,
+    sendSystemMessage,
+
+    // users
+    userMap,
+    otherUserDetails,
+    isOnline,
+    lastSeenText,
+    handleLogout,
+
+    // files
+    selectedFiles,
+    imageFiles,
+    otherFiles,
+    handleSendAll,
+    fileInputRef,
+    handleFileSelect,
+    setSelectedFiles,
+
+    // recording
+    isRecording,
+    startRecording,
+    stopRecording,
+
+    // group
+    addUsers,
+    removeUsers,
+    onUserRoleChange,
+    onDeleteGroup,
+  } = useChat();
+
   // ref for new messages
   const bottomRef = useRef(null);
   const [addedUser, setAddedUser] = useState(null);
@@ -149,7 +164,7 @@ export default function ChatWindow({
                 user={profileUser}
                 currentUser={currentUser}
                 onClose={() => setProfileOpen(false)}
-                onLogout={onLogout}
+                onLogout={handleLogout}
                 onSave={(newName) =>
                   dispatch({
                     type: "UPDATE_USER_NAME",
@@ -218,7 +233,6 @@ export default function ChatWindow({
 
           <MessageInfoModal
             message={selectedMessage}
-            chat={chat}
             userMap={userMap}
             onClose={() => setSelectedMessage(null)}
           />

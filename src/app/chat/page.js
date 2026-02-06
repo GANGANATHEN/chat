@@ -12,6 +12,7 @@ import AllChats from "../components/AllChats";
 import Users from "../components/User/Users";
 import Groups from "../components/Group/Groups";
 import GroupNamePrompt from "../components/Group/GroupNamePrompt";
+import { ChatProvider } from "../context/ChatContext";
 
 export default function Page() {
   const router = useRouter();
@@ -163,6 +164,14 @@ export default function Page() {
   // handle open user and group profile
   const handleProfile = (user) => {
     setProfileUser(user);
+    setProfileOpen(true);
+  };
+
+  const closeProfile = () => {
+    setProfileOpen(false);
+  };
+
+  const openProfile = () => {
     setProfileOpen(true);
   };
 
@@ -547,127 +556,143 @@ export default function Page() {
 
   /* -------------------- UI -------------------- */
   return (
-    <div className="h-dvh w-full flex bg-gray-900 text-white">
-      {/* LEFT ICON SIDEBAR */}
-      <div className="min-w-12">
-        <SidebarIcon
+    <ChatProvider
+      value={{
+        // core
+        state: state,
+        chat: activeChat,
+        chats: state.chats,
+        currentUser: state.currentUser,
+
+        // messaging
+        sendMessage,
+        sendSystemMessage,
+
+        // users
+        userMap,
+        otherUserDetails,
+        isOnline,
+        lastSeenText,
+        handleLogout,
+
+        // group
+        addUsers: addGroupUsers,
+        removeUsers: removeGroupUsers,
+        onUserRoleChange,
+        onDeleteGroup,
+
+        // profile
+        // profileOpen,
+        // openProfile,
+        // closeProfile,
+
+        // files
+        selectedFiles,
+        imageFiles,
+        otherFiles,
+        handleSendAll,
+        openFilePicker,
+        fileInputRef,
+        handleFileSelect,
+        setSelectedFiles,
+
+        // recording
+        isRecording,
+        startRecording,
+        stopRecording,
+      }}
+    >
+      <div className="h-dvh w-full flex bg-gray-900 text-white">
+        {/* LEFT ICON SIDEBAR */}
+        <div className="min-w-12">
+          <SidebarIcon
+            activeSection={activeSection}
+            setActiveSection={setActiveSection}
+            isMobile={isMobile}
+            onOpen={() => setIsSectionOpen(true)}
+            onLogout={handleLogout}
+          />
+        </div>
+
+        {/* DETAILS PANEL */}
+        <Section
           activeSection={activeSection}
-          setActiveSection={setActiveSection}
+          isOpen={isSectionOpen}
           isMobile={isMobile}
-          onOpen={() => setIsSectionOpen(true)}
-          onLogout={handleLogout}
-        />
-      </div>
+          onClose={() => {
+            setIsSectionOpen(false);
+            setActiveSection(null);
+          }}
+        >
+          {/* All chats */}
+          {activeSection === "chats" && (
+            <AllChats
+              sidebarItems={sidebarItems}
+              currentUser={state.currentUser}
+              state={state}
+              openChat={openChat}
+              isMobile={isMobile}
+              onClose={() => {
+                setIsSectionOpen(false);
+                setActiveSection(null);
+              }}
+            />
+          )}
+          {/* Only Users */}
+          {activeSection === "users" && (
+            <Users
+              chat={activeChat}
+              currentUser={state.currentUser}
+              openChat={openChat}
+              openPrivateChat={openPrivateChat}
+              isMobile={isMobile}
+              onClose={() => {
+                setIsSectionOpen(false);
+                setActiveSection(null);
+              }}
+            />
+          )}
+          {/* Only Groups */}
+          {activeSection === "groups" && (
+            <Groups
+              chats={state.chats}
+              chat={activeChat}
+              currentUser={state.currentUser}
+              createGroup={createGroup}
+              setActiveChat={(id) =>
+                dispatch({ type: "SET_ACTIVE_CHAT", payload: id })
+              }
+              isMobile={isMobile}
+              onClose={() => {
+                setIsSectionOpen(false);
+                setActiveSection(null);
+              }}
+            />
+          )}
+          {showPrompt && (
+            <GroupNamePrompt
+              onConfirm={handleCreateGroup}
+              onCancel={() => setShowPrompt(false)}
+            />
+          )}
+        </Section>
 
-      {/* DETAILS PANEL */}
-      <Section
-        activeSection={activeSection}
-        isOpen={isSectionOpen}
-        isMobile={isMobile}
-        onClose={() => {
-          setIsSectionOpen(false);
-          setActiveSection(null);
-        }}
-      >
-        {/* All chats */}
-        {activeSection === "chats" && (
-          <AllChats
-            sidebarItems={sidebarItems}
-            currentUser={state.currentUser}
-            state={state}
-            openChat={openChat}
-            isMobile={isMobile}
-            onClose={() => {
-              setIsSectionOpen(false);
-              setActiveSection(null);
-            }}
+        {/* CHAT AREA */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <Profile openProfile={handleProfile} onLogout={handleLogout} />
+          <ChatWindow
+            text={text}
+            setText={setText}
+            profileOpen={profileOpen}
+            profileUser={profileUser}
+            setProfileOpen={setProfileOpen}
+            getSenderName={getSenderName}
+            setSelectedUser={setSelectedUser}
+            selectedUser={selectedUser}
+            handleProfile={handleProfile}
           />
-        )}
-        {/* Only Users */}
-        {activeSection === "users" && (
-          <Users
-            chat={activeChat}
-            currentUser={state.currentUser}
-            openChat={openChat}
-            openPrivateChat={openPrivateChat}
-            isMobile={isMobile}
-            onClose={() => {
-              setIsSectionOpen(false);
-              setActiveSection(null);
-            }}
-          />
-        )}
-        {/* Only Groups */}
-        {activeSection === "groups" && (
-          <Groups
-            chats={state.chats}
-            chat={activeChat}
-            currentUser={state.currentUser}
-            createGroup={createGroup}
-            setActiveChat={(id) =>
-              dispatch({ type: "SET_ACTIVE_CHAT", payload: id })
-            }
-            isMobile={isMobile}
-            onClose={() => {
-              setIsSectionOpen(false);
-              setActiveSection(null);
-            }}
-          />
-        )}
-        {showPrompt && (
-          <GroupNamePrompt
-            onConfirm={handleCreateGroup}
-            onCancel={() => setShowPrompt(false)}
-          />
-        )}
-      </Section>
-
-      {/* CHAT AREA */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <Profile
-          currentUser={state.currentUser}
-          openProfile={handleProfile}
-          onLogout={handleLogout}
-        />
-        <ChatWindow
-          chat={activeChat}
-          state={state}
-          currentUser={state.currentUser}
-          text={text}
-          setText={setText}
-          handleSendText={handleSendText}
-          sendMessage={sendMessage}
-          profileOpen={profileOpen}
-          profileUser={profileUser}
-          setProfileOpen={setProfileOpen}
-          handleProfile={handleProfile}
-          userMap={userMap}
-          addUsers={addGroupUsers}
-          removeUsers={removeGroupUsers}
-          onLogout={handleLogout}
-          getSenderName={getSenderName}
-          getChatTitle={getChatTitle}
-          setSelectedUser={setSelectedUser}
-          selectedUser={selectedUser}
-          sendSystemMessage={sendSystemMessage}
-          otherUserDetails={otherUserDetails}
-          isOnline={isOnline}
-          lastSeenText={lastSeenText}
-          isRecording={isRecording}
-          stopRecording={stopRecording}
-          startRecording={startRecording}
-          openFilePicker={openFilePicker}
-          selectedFiles={selectedFiles}
-          handleSendAll={handleSendAll}
-          fileInputRef={fileInputRef}
-          handleFileSelect={handleFileSelect}
-          setSelectedFiles={setSelectedFiles}
-          imageFiles={imageFiles}
-          otherFiles={otherFiles}
-          onUserRoleChange={onUserRoleChange}
-          onDeleteGroup={onDeleteGroup}
-        />
+        </div>
       </div>
-    </div>
+    </ChatProvider>
   );
 }

@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function MessageInfoModal({ message, chat, userMap, onClose }) {
+export default function MessageInfoModal({ message, userMap, onClose }) {
   if (!message) return null;
 
   // Normalize readers (old vs new)

@@ -184,3 +184,54 @@ body{
   animation: slideIn 0.25s ease-out;
 }
 
+.wrapper {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #0b0b0b;
+  overflow: hidden;
+}
+
+/* Main circle */
+.circle {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  position: relative;
+}
+
+/* Mask */
+.particle-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 0 30px #00f6ff;
+}
+
+/* Particle */
+.particle {
+  width: 6px;
+  height: 6px;
+  background: #00f6ff;
+  border-radius: 50%;
+  position: absolute;
+  animation: moveOut 4s linear infinite;
+  opacity: 0.9;
+}
+
+@keyframes moveOut {
+  0% {
+    transform: translate(0, 0) scale(0.5);
+    opacity: 1;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--x), var(--y)) scale(1);
+    opacity: 0;
+  }
+}

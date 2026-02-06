@@ -1,23 +1,34 @@
 import { X, UserPlus, Users } from "lucide-react";
 import { useState } from "react";
 import AddMemberDrawer from "../Group/AddMemberDrawer";
+// useContext
+import { useChat } from "../../context/ChatContext";
 
 export default function GroupProfile({
-  chat,
-  state,
   onClose,
-  sendMessage,
   onRemoveMember,
   onAddMember,
-  currentUser,
   setSelectedUser,
-  userMap,
   addedUser,
   setAddedUser,
-  sendSystemMessage,
-  onUserRoleChange,
-  onDeleteGroup,
 }) {
+  const {
+    chat,
+    state,
+    currentUser,
+
+    // messaging
+    sendMessage,
+    sendSystemMessage,
+
+    // users
+    userMap,
+
+    // group
+    onUserRoleChange,
+    onDeleteGroup,
+  } = useChat();
+
   const [addOpen, setAddOpen] = useState(false);
   const [error, setError] = useState(null);
   const [uiRemovedUser, setUiRemovedUser] = useState(null);
@@ -88,7 +99,7 @@ export default function GroupProfile({
     if (!isCreator) return;
 
     onDeleteGroup(chat.id);
-    console.log("delete button clicked")
+    console.log("delete button clicked");
     setShowDeleteConfirm(false);
   }
 

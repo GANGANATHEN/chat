@@ -1,15 +1,11 @@
 import React, { useState, useMemo } from "react";
 import { Search } from "lucide-react";
-import { loadLocal } from "../../utils/storage";
+// useContext
+import { useChat } from "../../context/ChatContext";
 
-const Groups = ({
-  createGroup,
-  chats,
-  setActiveChat,
-  isMobile,
-  onClose,
-  currentUser,
-}) => {
+const Groups = ({ createGroup, chats, setActiveChat, isMobile, onClose }) => {
+  const { currentUser } = useChat();
+
   const [query, setQuery] = useState("");
   const getFilteredGroupChats = (chats, currentUser, query) => {
     if (!Array.isArray(chats) || !currentUser) return [];

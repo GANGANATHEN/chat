@@ -1,17 +1,24 @@
 import { X, UserPlus, Search } from "lucide-react";
 import { useState, useMemo } from "react";
 import { loadLocal } from "../../utils/storage";
+// useContext
+import { useChat } from "../../context/ChatContext";
 
 export default function AddMemberDrawer({
-  chat,
-  state,
   onAdd,
   onClose,
-  currentUser,
   addedUser,
   setAddedUser,
-  sendSystemMessage,
 }) {
+  const {
+    chat,
+    state,
+    currentUser,
+
+    // messaging
+    sendSystemMessage,
+  } = useChat();
+
   const allUsers = loadLocal("users", []);
   const [query, setQuery] = useState("");
   const [error, setError] = useState(null);
